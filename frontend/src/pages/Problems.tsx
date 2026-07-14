@@ -183,7 +183,7 @@ export default function Problems() {
                   transition={{ delay: i * 0.03 }}
                 >
                   <Link
-                    to={`/problems/${p.id}`}
+                    to={p.problem_type === 'mcq' ? `/mcq/${p.id}` : `/problems/${p.id}`}
                     className="block bg-dark-card border border-dark-border rounded-xl p-4 hover:border-primary/50 transition-all group"
                   >
                     <div className="flex items-center justify-between mb-2">

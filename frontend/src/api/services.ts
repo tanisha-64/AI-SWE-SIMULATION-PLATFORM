@@ -16,6 +16,8 @@ export const problemService = {
   getCompanyTags: () => apiClient.get('/problems/company-tags/list'),
   generate: (data: { category: string; difficulty: string; problem_type: string; count: number }) =>
     apiClient.post('/problems/generate', data),
+  submitMcq: (data: { problem_id: number; selected_index: number }) =>
+    apiClient.post('/problems/mcq/submit', data),
 };
 
 export const submissionService = {

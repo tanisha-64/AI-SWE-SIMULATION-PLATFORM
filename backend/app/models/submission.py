@@ -19,3 +19,14 @@ class Submission(BaseModel):
 
     user = relationship("User")
     problem = relationship("Problem")
+
+class McqAttempt(BaseModel):
+    __tablename__ = "mcq_attempts"
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    problem_id = Column(Integer, ForeignKey("problems.id"), nullable=False)
+    selected_index = Column(Integer, nullable=False)
+    is_correct = Column(String, nullable=False)
+
+    user = relationship("User")
+    problem = relationship("Problem")

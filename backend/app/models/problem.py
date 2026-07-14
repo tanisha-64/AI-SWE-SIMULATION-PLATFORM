@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, JSON, Integer
+from sqlalchemy import Column, String, Text, JSON, Integer, Date
 from app.models.base import BaseModel
 
 
@@ -26,3 +26,4 @@ class Problem(BaseModel):
     project_evaluation_criteria = Column(Text, nullable=True)
 
     is_active = Column(String, default="true")
+    daily_challenge_date = Column(Date, nullable=True)

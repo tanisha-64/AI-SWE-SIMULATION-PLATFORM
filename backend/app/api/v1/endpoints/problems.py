@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from app.services.problem_service import get_daily_mcqs
 from app.db.session import get_db
 from app.schemas.problem import (
     ProblemCreate, ProblemOut, ProblemDetail,
@@ -64,6 +65,14 @@ def list_company_tags(
     return {"company_tags": [t[0] for t in tags if t[0]]}
 
 
+@router.get("/daily-mcq/today", response_model=List[ProblemDetail])
+def daily_mcq_challenge(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return get_daily_mcqs(db, current_user.id)
+
+
 @router.get("/{problem_id}", response_model=ProblemDetail)
 def get_problem(
     problem_id: int,
@@ -71,7 +80,7 @@ def get_problem(
     current_user: User = Depends(get_current_user)
 ):
     return get_problem_by_id(db, problem_id)
-
+    
 
 @router.post("/mcq/submit", response_model=MCQSubmitOut)
 def submit_mcq(
@@ -79,5 +88,4 @@ def submit_mcq(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return submit_mcq_answer(db, request.problem_id, request.selected_index)
-
+    return submit_mcq_answer(db, current_user.id, request.problem_id, request.selected_index)

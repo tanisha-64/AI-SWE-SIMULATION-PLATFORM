@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.problem import Problem
 from app.schemas.problem import ProblemCreate
+from app.models.submission import McqAttempt
+from datetime import date
 from app.services.ai.problem_generator_service import generate_problem
 
 
@@ -86,17 +88,78 @@ def generate_and_save_bulk(db: Session, category: str, difficulty: str, problem_
     return created
 
 
-def submit_mcq_answer(db: Session, problem_id: int, selected_index: int) -> dict:
+def submit_mcq_answer(db: Session, user_id: int, problem_id: int, selected_index: int) -> dict:
     problem = get_problem_by_id(db, problem_id)
     if problem.problem_type != "mcq":
         raise HTTPException(status_code=400, detail="This problem is not an MCQ type")
 
     is_correct = selected_index == problem.mcq_correct_index
+
+    attempt = McqAttempt(
+        user_id=user_id,
+        problem_id=problem_id,
+        selected_index=selected_index,
+        is_correct=str(is_correct)
+    )
+    db.add(attempt)
+    db.commit()
+
     return {
         "is_correct": is_correct,
         "correct_index": problem.mcq_correct_index,
         "explanation": problem.mcq_explanation
     }
+
+
+def get_daily_mcqs(db: Session, user_id: int) -> list:
+    """
+    Returns today's 10 daily MCQ challenges.
+    Auto-generates them via AI if they don't exist yet for today.
+    Excludes MCQs the user has already solved.
+    """
+    today = date.today()
+
+    todays_mcqs = db.query(Problem).filter(
+        Problem.daily_challenge_date == today,
+        Problem.problem_type == "mcq"
+    ).all()
+
+    if len(todays_mcqs) < 10:
+        topics = [
+            "Arrays", "Time Complexity", "Recursion", "Hash Maps",
+            "Sorting Algorithms", "Linked Lists", "Trees", "Graphs",
+            "Dynamic Programming", "Operating Systems Basics"
+        ]
+        needed = 10 - len(todays_mcqs)
+        for topic in topics[:needed]:
+            try:
+                ai_data = generate_problem(topic, "medium", "mcq")
+                new_problem = Problem(
+                    title=ai_data["title"],
+                    description=ai_data["description"],
+                    difficulty=ai_data["difficulty"],
+                    category=ai_data["category"],
+                    problem_type="mcq",
+                    company_style_tag=ai_data.get("company_style_tag"),
+                    mcq_options=ai_data.get("mcq_options"),
+                    mcq_correct_index=ai_data.get("mcq_correct_index"),
+                    mcq_explanation=ai_data.get("mcq_explanation"),
+                    daily_challenge_date=today
+                )
+                db.add(new_problem)
+                todays_mcqs.append(new_problem)
+            except ValueError:
+                continue
+        db.commit()
+
+    solved_ids = {
+        a.problem_id for a in db.query(McqAttempt).filter(
+            McqAttempt.user_id == user_id,
+            McqAttempt.problem_id.in_([p.id for p in todays_mcqs])
+        ).all()
+    }
+
+    return [p for p in todays_mcqs if p.id not in solved_ids]
 
 
 def search_problems(db: Session, search_query: str):
