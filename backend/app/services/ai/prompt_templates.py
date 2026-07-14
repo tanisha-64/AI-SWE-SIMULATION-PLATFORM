@@ -189,3 +189,31 @@ STUDENT'S LATEST MESSAGE: {question}
 INSTRUCTION: {stage_instruction}
 
 Keep your response under 80 words. Be warm and encouraging, never condescending."""
+
+
+def tier_curation_prompt(tier_name: str, min_lpa: int, max_lpa) -> str:
+    lpa_range = f"{min_lpa}-{max_lpa} LPA" if max_lpa else f"{min_lpa}+ LPA"
+
+    return f"""You are a senior technical recruiter and interview coach with 15 years of experience
+placing engineers at Indian and global tech companies across all compensation bands.
+
+Generate an ACCURATE, well-established curriculum for engineers targeting the {lpa_range} compensation band.
+
+Base this on WIDELY-RECOGNIZED, standard industry patterns for this band — the kind of consensus
+guidance found in real interview prep communities (not fabricated specifics about any single company).
+Be precise about difficulty calibration: lower bands emphasize fundamentals and correctness,
+higher bands emphasize optimization, system design, and leadership signals.
+
+Respond ONLY in valid JSON with this exact structure:
+{{
+  "description": "string (1-2 sentences describing what this band typically expects)",
+  "dsa_topics": ["topic1", "topic2", ... 6-9 topics, ordered by priority],
+  "required_subjects": ["subject1", "subject2", ... 4-6 subjects],
+  "behavioral_focus": ["area1", "area2", ... 3-5 areas],
+  "checklist_items": [
+    {{"item_text": "string (specific, actionable)", "category": "dsa"}},
+    {{"item_text": "string", "category": "subject"}},
+    {{"item_text": "string", "category": "behavioral"}}
+  ]
+}}
+Include exactly 8-10 checklist_items total, mixing all three categories. No markdown, just JSON."""
