@@ -141,47 +141,54 @@ export default function DailyChallenge() {
             </h2>
 
             <div className="space-y-3 mb-6">
-              {currentProblem.mcq_options?.map((option, idx) => {
-                const isSelected = selected === idx;
-                const isCorrect = result && idx === result.correct_index;
-                const isWrongSelected = result && isSelected && !result.is_correct;
+              {currentProblem.mcq_options && currentProblem.mcq_options.length > 0 ? (
+                currentProblem.mcq_options.map((option, idx) => {
+                  const isSelected = selected === idx;
+                  const isCorrect = result && idx === result.correct_index;
+                  const isWrongSelected = result && isSelected && !result.is_correct;
+                  const showAsCorrectAfterResult = result && !result.is_correct && idx === result.correct_index;
 
-                return (
-                  <motion.button
-                    key={idx}
-                    whileHover={{ scale: result ? 1 : 1.01 }}
-                    whileTap={{ scale: result ? 1 : 0.99 }}
-                    onClick={() => !result && setSelected(idx)}
-                    disabled={!!result}
-                    className={`w-full text-left p-4 rounded-xl border transition-all flex items-center gap-3 ${
-                      isCorrect
-                        ? 'bg-green-500/10 border-green-500/40'
-                        : isWrongSelected
-                        ? 'bg-red-500/10 border-red-500/40'
-                        : isSelected
-                        ? 'bg-primary/10 border-primary/40'
-                        : 'bg-dark-bg border-dark-border hover:border-primary/30'
-                    }`}
-                  >
-                    <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 text-xs font-semibold ${
-                        isCorrect
-                          ? 'border-green-400 text-green-400'
+                  return (
+                    <motion.button
+                      key={idx}
+                      whileHover={{ scale: result ? 1 : 1.015, x: result ? 0 : 4 }}
+                      whileTap={{ scale: result ? 1 : 0.98 }}
+                      onClick={() => !result && setSelected(idx)}
+                      disabled={!!result}
+                      type="button"
+                      className={`relative w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 cursor-pointer ${result ? 'cursor-default' : ''
+                        } ${isCorrect || showAsCorrectAfterResult
+                          ? 'bg-green-500/15 border-green-500 shadow-lg shadow-green-500/10'
                           : isWrongSelected
-                          ? 'border-red-400 text-red-400'
-                          : isSelected
-                          ? 'border-primary text-primary'
-                          : 'border-gray-600 text-gray-500'
-                      }`}
+                            ? 'bg-red-500/15 border-red-500 shadow-lg shadow-red-500/10'
+                            : isSelected
+                              ? 'bg-primary/15 border-primary'
+                              : 'bg-dark-bg border-dark-border hover:border-primary/40 hover:bg-dark-border/30'
+                        }`}
                     >
-                      {String.fromCharCode(65 + idx)}
-                    </div>
-                    <span className="text-sm text-gray-200 flex-1">{option}</span>
-                    {isCorrect && <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />}
-                    {isWrongSelected && <XCircle className="w-5 h-5 text-red-400 shrink-0" />}
-                  </motion.button>
-                );
-              })}
+                      <div
+                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 text-sm font-bold transition-colors ${isCorrect || showAsCorrectAfterResult
+                            ? 'border-green-400 bg-green-400 text-dark-bg'
+                            : isWrongSelected
+                              ? 'border-red-400 bg-red-400 text-dark-bg'
+                              : isSelected
+                                ? 'border-primary bg-primary text-white'
+                                : 'border-gray-600 text-gray-400'
+                          }`}
+                      >
+                        {String.fromCharCode(65 + idx)}
+                      </div>
+                      <span className="text-sm text-gray-200 flex-1 font-medium">{option}</span>
+                      {(isCorrect || showAsCorrectAfterResult) && <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />}
+                      {isWrongSelected && <XCircle className="w-5 h-5 text-red-400 shrink-0" />}
+                    </motion.button>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  This question failed to load properly. Skipping...
+                </div>
+              )}
             </div>
 
             <AnimatePresence>
