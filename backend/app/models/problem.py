@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, JSON, Integer, Date
+from sqlalchemy import Column, String, Text, JSON, Integer, Date, Index
 from app.models.base import BaseModel
 
 
@@ -7,9 +7,9 @@ class Problem(BaseModel):
 
     title = Column(String, nullable=False)
     description = Column(Text, nullable=False)
-    difficulty = Column(String, nullable=False)  # easy, medium, hard
-    category = Column(String, nullable=False)     # arrays, strings, dp, system-design, etc.
-    problem_type = Column(String, nullable=False, default="coding")  # coding, mcq, project
+    difficulty = Column(String, nullable=False, index=True)
+    category = Column(String, nullable=False, index=True)
+    problem_type = Column(String, nullable=False, default="coding", index=True)
     company_style_tag = Column(String, nullable=True)  # e.g. "Fintech/Payments style (Razorpay, Stripe pattern)"
 
     # Coding-type fields

@@ -6,12 +6,13 @@ from app.schemas.career_track import SalaryTierOut, SalaryTierDetail, ToggleChec
 from app.services.career_track_service import get_all_tiers, get_tier_detail, toggle_checklist_item, get_tier_progress_summary
 from app.utils.jwt_handler import get_current_user
 from app.models.user import User
+from app.utils.rate_limiter import rate_limit
+
 
 router = APIRouter(prefix="/career-tracks", tags=["Career Tracks"])
 
-
 @router.get("/", response_model=List[SalaryTierOut])
-def list_tiers(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_tiers(db: Session = Depends(get_db), current_user: User = Depends(rate_limit(max_requests=10, window_seconds=60))):
     return get_all_tiers(db)
 
 
