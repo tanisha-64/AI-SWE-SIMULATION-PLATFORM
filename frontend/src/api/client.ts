@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const BASE_URL = 'https://ai-swe-platform-backend.onrender.com/api/v1';
+const BASE_URL = 'https://ai-swe-simulation-platform.onrender.com/api/v1';
 
 const apiClient = axios.create({ baseURL: BASE_URL });
 
