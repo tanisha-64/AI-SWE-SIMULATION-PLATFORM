@@ -95,6 +95,7 @@ h1, h2, h3, .font-display {
   mask-composite: exclude;
   opacity: 0;
   transition: opacity 0.3s;
+  pointer-events: none;
 }
 .glow-border:hover::before {
   opacity: 1;

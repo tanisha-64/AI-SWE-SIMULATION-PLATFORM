@@ -4,6 +4,7 @@ from app.models.problem import Problem
 from app.schemas.problem import ProblemCreate
 from app.models.submission import McqAttempt
 from datetime import date
+from app.services.streak_service import record_activity
 from app.services.ai.problem_generator_service import generate_problem
 
 
@@ -103,6 +104,8 @@ def submit_mcq_answer(db: Session, user_id: int, problem_id: int, selected_index
     )
     db.add(attempt)
     db.commit()
+
+    record_activity(db, user_id)
 
     return {
         "is_correct": is_correct,
