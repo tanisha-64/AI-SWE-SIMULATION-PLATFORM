@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { Flame } from 'lucide-react';
 import UserMenu from './UserMenu';
 import {
   Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
@@ -21,6 +22,7 @@ export default function Navbar() {
     { path: '/debug-arena', label: 'Debug Arena', icon: Bug },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
+    { path: '/daily-challenge', label: 'Daily Challenge', icon: Flame },
   ];
 
   return (

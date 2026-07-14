@@ -14,6 +14,8 @@ import Profile from './pages/Profile';
 import Mentor from './pages/Mentor';
 import NotFound from './pages/NotFound';
 import McqWorkspace from './pages/McqWorkspace';
+import DailyChallenge from './pages/DailyChallenge';
+
 
 
 function App() {
@@ -33,6 +35,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/mentor" element={<ProtectedRoute><Mentor /></ProtectedRoute>} />
           <Route path="/mcq/:id" element={<ProtectedRoute><McqWorkspace /></ProtectedRoute>} />
+          <Route path="/daily-challenge" element={<ProtectedRoute><DailyChallenge /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

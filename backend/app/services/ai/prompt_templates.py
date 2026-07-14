@@ -71,6 +71,13 @@ No markdown, just JSON."""
         return common_header + f"""
 Create a conceptual multiple-choice question (CS fundamentals, system design basics, or language-specific concept relevant to {category}).
 
+CRITICAL REQUIREMENTS:
+- Provide EXACTLY 4 options in "mcq_options"
+- "mcq_correct_index" must be a valid index (0, 1, 2, or 3) pointing to the genuinely correct answer
+- Double-check your answer is factually correct before responding
+- The 3 incorrect options must be plausible but clearly wrong upon careful analysis
+- Never leave mcq_options empty
+
 Respond ONLY in valid JSON:
 {{
   "title": "string",
@@ -80,7 +87,7 @@ Respond ONLY in valid JSON:
   "company_style_tag": "string",
   "mcq_options": ["option A", "option B", "option C", "option D"],
   "mcq_correct_index": 0,
-  "mcq_explanation": "string (why this answer is correct)"
+  "mcq_explanation": "string (why this answer is correct, and briefly why others are wrong)"
 }}
 No markdown, just JSON."""
 

@@ -18,6 +18,7 @@ export const problemService = {
     apiClient.post('/problems/generate', data),
   submitMcq: (data: { problem_id: number; selected_index: number }) =>
     apiClient.post('/problems/mcq/submit', data),
+  getDailyMcqs: () => apiClient.get('/problems/daily-mcq/today'),
 };
 
 export const submissionService = {
