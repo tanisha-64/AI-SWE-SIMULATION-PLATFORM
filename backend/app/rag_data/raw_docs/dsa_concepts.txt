@@ -1,0 +1,32 @@
+Topic: Arrays
+An array is a collection of elements stored at contiguous memory locations. Elements can be accessed directly using an index, making read operations O(1). However, insertion or deletion in the middle of an array is O(n) because subsequent elements need to be shifted. Arrays have a fixed size in many languages, though Python lists are dynamic arrays that resize automatically.
+
+Topic: Two Pointer Technique
+The two-pointer technique uses two indices to traverse a data structure, often from opposite ends or at different speeds. It's commonly used to solve problems like finding pairs in a sorted array that sum to a target, reversing arrays, or detecting cycles in linked lists. This technique typically reduces time complexity from O(n^2) to O(n) compared to brute-force nested loops.
+
+Topic: Binary Search
+Binary search is an efficient algorithm for finding an item in a sorted array. It works by repeatedly dividing the search interval in half. If the target value is less than the middle element, search continues in the lower half; otherwise in the upper half. This gives a time complexity of O(log n), much faster than linear search's O(n). Binary search requires the array to be sorted beforehand.
+
+Topic: Hash Maps
+A hash map (or dictionary) stores key-value pairs and provides average O(1) time complexity for insertion, deletion, and lookup. It works by using a hash function to compute an index into an array of buckets. Hash maps are extremely useful for problems requiring frequency counting, duplicate detection, or fast lookups, such as the classic "Two Sum" problem.
+
+Topic: Dynamic Programming
+Dynamic programming (DP) is a technique for solving problems by breaking them into overlapping subproblems and storing the results to avoid redundant computation. There are two main approaches: top-down (memoization, using recursion with a cache) and bottom-up (tabulation, using iterative loops with an array). Classic DP problems include the Fibonacci sequence, the Knapsack problem, and Longest Common Subsequence.
+
+Topic: Graph Traversal - BFS and DFS
+Breadth-First Search (BFS) explores a graph level by level using a queue, making it ideal for finding the shortest path in unweighted graphs. Depth-First Search (DFS) explores as far as possible along each branch before backtracking, typically implemented using recursion or a stack. BFS uses more memory for wide graphs, while DFS uses more memory for deep graphs.
+
+Topic: Time Complexity Basics
+Big-O notation describes the upper bound of an algorithm's growth rate as input size increases. Common complexities from fastest to slowest: O(1) constant, O(log n) logarithmic, O(n) linear, O(n log n) linearithmic, O(n^2) quadratic, O(2^n) exponential. When analyzing code, focus on the dominant term and ignore constants — O(2n) simplifies to O(n).
+
+Topic: Recursion
+Recursion is when a function calls itself to solve smaller instances of the same problem. Every recursive function needs a base case (to stop recursion) and a recursive case (that moves toward the base case). Recursion uses the call stack, so deeply nested recursive calls can cause a stack overflow. Many recursive solutions can be converted to iterative ones using explicit stacks or loops for better space efficiency.
+
+Topic: Sliding Window Technique
+The sliding window technique is used to solve problems involving contiguous subarrays or substrings. Instead of recalculating the entire window from scratch, it slides the window by adjusting start and end pointers, reusing previous computations. This is commonly used for problems like "maximum sum subarray of size k" or "longest substring without repeating characters," reducing time complexity from O(n*k) to O(n).
+
+Topic: Debugging Best Practices
+Effective debugging starts with reproducing the bug consistently. Use print statements or a debugger to inspect variable states at key points. Check boundary conditions first (empty inputs, single elements, off-by-one errors) as they are the most common source of bugs. Read error tracebacks carefully — they usually point to the exact line and type of error, such as IndexError, TypeError, or KeyError in Python.
+
+Topic: Interview Preparation Strategy
+When approaching a coding interview problem, first clarify requirements and constraints with the interviewer. Then think out loud about a brute-force approach before optimizing. Discuss time and space complexity trade-offs explicitly. Write clean, readable code with meaningful variable names. Finally, test your solution with edge cases like empty inputs, single elements, and large inputs before declaring it complete.

@@ -1,0 +1,131 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+import UserMenu from './UserMenu';
+import {
+  Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
+  MessageSquareText, LogOut, Menu, X, BarChart3,
+} from 'lucide-react';
+
+export default function Navbar() {
+  const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/problems', label: 'Problems', icon: ListChecks },
+    { path: '/debug-arena', label: 'Debug Arena', icon: Bug },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
+  ];
+
+  return (
+    <nav className="sticky top-0 z-50 bg-dark-card/80 backdrop-blur-lg border-b border-dark-border">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+        <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg shrink-0">
+          <div className="bg-primary/20 p-1.5 rounded-lg">
+            <Code2 className="w-5 h-5 text-primary" />
+          </div>
+          <span className="hidden sm:inline">CodeMentor AI</span>
+        </Link>
+
+        {/* Desktop nav — visible only on wide screens */}
+        <div className="hidden lg:flex items-center gap-1">
+          {navItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.path);
+            return (
+              <Link key={item.path} to={item.path} className="relative px-4 py-2 text-sm font-medium">
+                <span className={isActive ? 'text-primary' : 'text-gray-400 hover:text-white transition-colors'}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <motion.div
+                    layoutId="navbar-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-purple-500 rounded-full"
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.9, rotate: 180 }}
+            onClick={toggleTheme}
+            className="p-2 rounded-lg hover:bg-dark-border transition-colors"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </motion.button>
+
+          {/* Desktop: avatar dropdown menu */}
+          <div className="hidden lg:block">
+            <UserMenu />
+          </div>
+
+          {/* Hamburger — visible below lg breakpoint */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="lg:hidden p-2 rounded-lg hover:bg-dark-border transition-colors"
+          >
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile/collapsed dropdown menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="lg:hidden overflow-hidden border-t border-dark-border"
+          >
+            <div className="px-4 py-2 space-y-1">
+              {navItems.map((item) => {
+                const isActive = location.pathname.startsWith(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-dark-border hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+              <Link
+                to="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-dark-border hover:text-white transition-colors"
+              >
+                <Code2 className="w-4 h-4" />
+                My Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-dark-border hover:text-red-400 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+}

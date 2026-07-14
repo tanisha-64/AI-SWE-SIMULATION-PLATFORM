@@ -1,0 +1,184 @@
+def code_review_prompt(problem_title: str, problem_description: str, code: str, language: str) -> str:
+    return f"""You are a senior software engineer conducting a code review at a top tech company.
+
+PROBLEM: {problem_title}
+DESCRIPTION: {problem_description}
+
+CANDIDATE'S CODE ({language}):
+{code}
+
+Provide a structured code review with these exact sections:
+
+1. CODE_QUALITY: Rate 1-10 and briefly explain (readability, naming, structure)
+2. TIME_COMPLEXITY: State Big-O and explain
+3. SPACE_COMPLEXITY: State Big-O and explain
+4. BUGS_OR_EDGE_CASES: List any bugs or unhandled edge cases (or "None found")
+5. OPTIMIZATION_SUGGESTIONS: Specific ways to improve, if any
+6. OVERALL_VERDICT: One sentence summary
+
+Respond ONLY in valid JSON format with these exact keys: code_quality_score, code_quality_note, time_complexity, space_complexity, bugs_found, optimization_suggestions, overall_verdict. No markdown, no extra text, just JSON."""
+
+
+def debugging_hint_prompt(problem_description: str, broken_code: str, user_attempt: str, hint_level: int) -> str:
+    hint_instructions = {
+        1: "Give a very general, high-level hint about WHERE the bug might be (which function/section). Do not reveal the actual bug.",
+        2: "Give a more specific hint about WHAT TYPE of bug it is (e.g., off-by-one, wrong condition, type mismatch). Do not give the fix.",
+        3: "Point to the exact line number and explain what's wrong conceptually, but do not write the corrected code."
+    }
+
+    return f"""You are a debugging mentor helping a student learn, not just fixing their code for them.
+
+PROBLEM: {problem_description}
+ORIGINAL BROKEN CODE:
+{broken_code}
+
+STUDENT'S CURRENT ATTEMPT:
+{user_attempt}
+
+HINT LEVEL {hint_level}: {hint_instructions.get(hint_level, hint_instructions[1])}
+
+Respond ONLY in valid JSON with keys: hint_text, hint_level. Keep hint_text under 60 words."""
+
+def problem_generation_prompt(category: str, difficulty: str, problem_type: str) -> str:
+    common_header = f"""You are an expert technical assessment creator, similar to those who design questions for top tech company hiring rounds (fintech, e-commerce, SaaS companies like Razorpay, Stripe, Swiggy, Amazon).
+
+Generate ONE original {problem_type}-type question with these specs:
+- Category: {category}
+- Difficulty: {difficulty}
+- The content must be ORIGINAL — do not copy any real company's actual question, only mimic the STYLE and PATTERN typically seen in that type of company's interviews.
+- Include a "company_style_tag" field describing which industry/company archetype this resembles (e.g., "Fintech/Payments style (Razorpay, Stripe pattern)" or "E-commerce scale style (Amazon, Flipkart pattern)"). Never claim it IS an actual company's real question.
+"""
+
+    if problem_type == "coding":
+        return common_header + f"""
+Respond ONLY in valid JSON:
+{{
+  "title": "string",
+  "description": "string (include constraints and examples)",
+  "difficulty": "{difficulty}",
+  "category": "{category}",
+  "company_style_tag": "string",
+  "test_cases": [
+    {{"input": "string", "output": "string", "is_sample": true}},
+    {{"input": "string", "output": "string", "is_sample": true}},
+    {{"input": "string", "output": "string", "is_sample": false}},
+    {{"input": "string", "output": "string", "is_sample": false}}
+  ]
+}}
+No markdown, just JSON."""
+
+    elif problem_type == "mcq":
+        return common_header + f"""
+Create a conceptual multiple-choice question (CS fundamentals, system design basics, or language-specific concept relevant to {category}).
+
+Respond ONLY in valid JSON:
+{{
+  "title": "string",
+  "description": "string (the question itself)",
+  "difficulty": "{difficulty}",
+  "category": "{category}",
+  "company_style_tag": "string",
+  "mcq_options": ["option A", "option B", "option C", "option D"],
+  "mcq_correct_index": 0,
+  "mcq_explanation": "string (why this answer is correct)"
+}}
+No markdown, just JSON."""
+
+    else:  # project
+        return common_header + f"""
+Create a mini project-level challenge (something that would take a candidate a few hours, like building a small module/API/feature).
+
+Respond ONLY in valid JSON:
+{{
+  "title": "string",
+  "description": "string (project overview and context)",
+  "difficulty": "{difficulty}",
+  "category": "{category}",
+  "company_style_tag": "string",
+  "project_requirements": ["requirement 1", "requirement 2", "requirement 3", "requirement 4"],
+  "project_evaluation_criteria": "string (how this would be evaluated: code quality, edge cases, architecture, etc.)"
+}}
+No markdown, just JSON."""
+    
+def rag_chat_prompt(question: str, contexts: list) -> str:
+    context_text = "\n\n".join([f"[{c['topic']}]: {c['text']}" for c in contexts])
+
+    return f"""You are a helpful coding mentor for students preparing for technical interviews.
+
+Use ONLY the following reference material to answer the student's question. If the reference material doesn't fully cover the question, answer what you can from it and clearly state what additional research the student should do.
+
+REFERENCE MATERIAL:
+{context_text}
+
+STUDENT'S QUESTION: {question}
+
+Give a clear, encouraging, and educational answer. Keep it concise (under 150 words) and beginner-friendly. Do not make up information not present in the reference material."""
+
+def knowledge_generation_prompt(topic: str) -> str:
+    return f"""You are a computer science educator writing reference material for a coding interview prep platform.
+
+Write a clear, accurate, educational explanation of the following topic: "{topic}"
+
+Requirements:
+- 100-180 words
+- Cover: what it is, how it works, time/space complexity if applicable, and when to use it
+- Beginner-friendly but technically accurate
+- Write in plain paragraph form, no markdown formatting, no headers
+
+Respond with ONLY the explanation text, nothing else."""
+
+def career_advisor_agent_prompt(analytics: dict, recommendations: list, concept_explanation: str) -> str:
+    return f"""You are an expert career advisor and coding mentor for a student preparing for tech interviews and placements.
+
+STUDENT'S CURRENT PERFORMANCE DATA:
+- Problems solved: {analytics['total_problems_solved']}
+- Accuracy: {analytics['accuracy_percentage']}%
+- Industry Readiness Score: {analytics['industry_readiness_score']}/100
+- Strengths: {', '.join(analytics['strengths']) if analytics['strengths'] else 'Not yet identified'}
+- Weaknesses: {', '.join(analytics['weaknesses']) if analytics['weaknesses'] else 'Not yet identified'}
+- Consistency: {analytics['consistency_score']}%
+
+RECOMMENDED NEXT PROBLEMS (based on weaknesses):
+{chr(10).join([f"- {p['title']} ({p['difficulty']}, {p['category']})" for p in recommendations]) if recommendations else "No specific recommendations yet — student needs to attempt more problems first."}
+
+RELEVANT CONCEPT EXPLANATION:
+{concept_explanation}
+
+Based on ALL of the above, write a personalized, encouraging action plan for this student. Structure your response with:
+1. A brief assessment of where they currently stand
+2. Specific next steps (referencing the recommended problems above)
+3. One key concept they should focus on understanding deeply
+4. A motivating closing note
+
+Keep it under 200 words, warm and actionable tone."""
+
+
+def socratic_tutor_prompt(question: str, contexts: list, conversation_history: list, turn_count: int) -> str:
+    context_text = "\n\n".join([f"[{c['topic']}]: {c['text']}" for c in contexts])
+
+    history_text = "\n".join([
+        f"Student: {h['question']}\nTutor: {h['answer']}" for h in conversation_history
+    ]) if conversation_history else "This is the first message in the conversation."
+
+    stage_instruction = (
+        "This is early in the conversation. Do NOT give the full answer yet. "
+        "Ask ONE guiding question that helps the student think through the problem themselves, "
+        "based on the reference material below."
+        if turn_count < 2 else
+        "The student has engaged with your guiding questions. Now provide a clear, complete explanation, "
+        "building on what they've already figured out in the conversation."
+    )
+
+    return f"""You are a Socratic coding tutor. You help students discover answers through guided questioning rather than just telling them, similar to how a great teacher or interviewer coaches someone.
+
+REFERENCE MATERIAL:
+{context_text}
+
+CONVERSATION SO FAR:
+{history_text}
+
+STUDENT'S LATEST MESSAGE: {question}
+
+INSTRUCTION: {stage_instruction}
+
+Keep your response under 80 words. Be warm and encouraging, never condescending."""
