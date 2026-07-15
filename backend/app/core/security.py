@@ -28,3 +28,7 @@ def create_refresh_token(user_id: int) -> str:
 
 def decode_access_token(token: str) -> dict:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+
+def decode_token(token: str) -> dict:
+    return decode_access_token(token)

@@ -6,7 +6,7 @@ from app.models.user import User
 from app.schemas.user import UserRegister, UserLogin
 from app.core.security import (
     hash_password, verify_password, create_access_token,
-    create_refresh_token, decode_token
+    create_refresh_token, decode_access_token
 )
 from app.services.email_service import send_verification_email
 
@@ -80,7 +80,7 @@ def login_user(db: Session, login_data: UserLogin) -> dict:
 
 def refresh_access_token(refresh_token: str) -> str:
     try:
-        payload = decode_token(refresh_token)
+        payload = decode_access_token(refresh_token)
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Invalid token type")
         user_id = int(payload.get("sub"))
