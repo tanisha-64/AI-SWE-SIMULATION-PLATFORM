@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials  # type: ignore
 from sqlalchemy.orm import Session
 from jose import JWTError
 from app.core.security import decode_access_token

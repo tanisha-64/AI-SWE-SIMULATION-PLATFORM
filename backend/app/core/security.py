@@ -26,5 +26,5 @@ def create_refresh_token(user_id: int) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
-def decode_token(token: str) -> dict:
+def decode_access_token(token: str) -> dict:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
