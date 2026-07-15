@@ -13,29 +13,30 @@ interface Challenge {
   language: string;
 }
 
-const difficultyConfig: Record<string, { color: string; icon: any; glow: string }> = {
-  easy: { color: 'text-green-400 border-green-500/30 bg-green-500/5', icon: Zap, glow: 'shadow-green-500/20' },
-  medium: { color: 'text-amber-400 border-amber-500/30 bg-amber-500/5', icon: ShieldAlert, glow: 'shadow-amber-500/20' },
-  hard: { color: 'text-red-400 border-red-500/30 bg-red-500/5', icon: Skull, glow: 'shadow-red-500/20' },
+const difficultyConfig: Record<string, { color: string; icon: any }> = {
+  easy: { color: 'text-green-400 border-green-500/30 bg-green-500/5', icon: Zap },
+  medium: { color: 'text-amber-400 border-amber-500/30 bg-amber-500/5', icon: ShieldAlert },
+  hard: { color: 'text-red-400 border-red-500/30 bg-red-500/5', icon: Skull },
 };
 
 export default function DebugArena() {
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [allChallenges, setAllChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
     setLoading(true);
     debugService.getDaily().then((res) => {
-      setChallenges(res.data);
+      setAllChallenges(res.data);
       setLoading(false);
     });
   }, []);
 
+  const challenges = filter ? allChallenges.filter((c) => c.difficulty === filter) : allChallenges;
+
   return (
     <AppLayout>
       <div className="relative min-h-[calc(100vh-64px)] overflow-hidden">
-        {/* Scanline / grid background */}
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
@@ -52,7 +53,6 @@ export default function DebugArena() {
 
         <div className="relative z-10 p-6 md:p-8 max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            {/* Terminal-style header */}
             <div className="glass-card rounded-2xl p-5 mb-6 font-mono border border-red-500/20">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-3 h-3 rounded-full bg-red-500" />
@@ -64,7 +64,7 @@ export default function DebugArena() {
                 <Terminal className="w-4 h-4 text-red-400" />
                 <span className="text-gray-400">
                   <span className="text-red-400">$</span> scanning for vulnerabilities...{' '}
-                  <span className="text-green-400">{challenges.length} bugs found</span>
+                  <span className="text-green-400">{allChallenges.length} bugs found today</span>
                 </span>
                 <motion.span
                   animate={{ opacity: [1, 0, 1] }}
@@ -81,7 +81,7 @@ export default function DebugArena() {
               <h1 className="font-display text-3xl font-bold">Debugging Arena</h1>
             </div>
             <p className="text-gray-400 mb-6">
-              Real-world broken code. Hunt the bug, fix it, and unlock AI-powered hints if you're stuck.
+              Today's 6 AI-generated debugging challenges. Fresh set every day.
             </p>
 
             <div className="flex gap-2 mb-8">
@@ -91,23 +91,25 @@ export default function DebugArena() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setFilter(d)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${filter === d
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                    filter === d
                       ? 'bg-primary text-white border-primary'
                       : 'bg-dark-card border-dark-border text-gray-400 hover:text-white hover:border-primary/30'
-                    }`}
+                  }`}
                 >
-                  {d === '' ? 'All Threats' : d.charAt(0).toUpperCase() + d.slice(1)}
+                  {d === '' ? 'All' : d.charAt(0).toUpperCase() + d.slice(1)}
                 </motion.button>
               ))}
             </div>
 
             {loading ? (
-              <div className="flex justify-center py-20">
+              <div className="flex flex-col items-center gap-3 py-20">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                <p className="text-gray-500 text-sm">Generating today's challenges with AI...</p>
               </div>
             ) : challenges.length === 0 ? (
               <div className="text-center py-20 text-gray-500 font-mono">
-                &gt; no active threats detected. system secure.
+                &gt; no threats match this filter.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -127,11 +129,6 @@ export default function DebugArena() {
                           transition={{ type: 'spring', stiffness: 300 }}
                           className={`relative glass-card rounded-xl p-5 h-full border overflow-hidden group ${config.color}`}
                         >
-                          {/* Animated corner glow on hover */}
-                          <motion.div
-                            className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 bg-current`}
-                          />
-
                           <div className="relative flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                               <DiffIcon className="w-4 h-4" />

@@ -14,6 +14,7 @@ const SCRIPT = (name: string) => [
   "You'll find a Career Tracks section tailored to your target salary band, a Daily MCQ Challenge that refreshes every day, and an AI Mentor available anytime you're stuck.",
   "Your Dashboard tracks your streak, your Industry Readiness Score, and personalized recommendations based on your weak areas.",
   "Everything here is grounded in real data — no fluff. Let's get you interview-ready.",
+  "This platform was built and designed by Tanisha. Let's begin.",
 ];
 
 export default function Welcome() {

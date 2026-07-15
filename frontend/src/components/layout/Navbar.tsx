@@ -3,12 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
-import { Flame } from 'lucide-react';
-import { TrendingUp } from 'lucide-react';
 import UserMenu from './UserMenu';
 import {
   Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
-  MessageSquareText, LogOut, Menu, X, BarChart3,
+  MessageSquareText, LogOut, Menu, X, BarChart3, TrendingUp,
+  Flame, HelpCircle,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -21,10 +20,11 @@ export default function Navbar() {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/problems', label: 'Problems', icon: ListChecks },
     { path: '/debug-arena', label: 'Debug Arena', icon: Bug },
-    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/daily-challenge', label: 'Daily Challenge', icon: Flame },
-    { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
     { path: '/career-tracks', label: 'Career Tracks', icon: TrendingUp },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
+    { path: '/contact', label: 'Help', icon: HelpCircle },
   ];
 
   return (
@@ -37,12 +37,11 @@ export default function Navbar() {
           <span className="hidden sm:inline">CodeMentor AI</span>
         </Link>
 
-        {/* Desktop nav — visible only on wide screens */}
-        <div className="hidden lg:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
-              <Link key={item.path} to={item.path} className="relative px-4 py-2 text-sm font-medium">
+              <Link key={item.path} to={item.path} className="relative px-3 py-2 text-sm font-medium whitespace-nowrap">
                 <span className={isActive ? 'text-primary' : 'text-gray-400 hover:text-white transition-colors'}>
                   {item.label}
                 </span>
@@ -66,12 +65,10 @@ export default function Navbar() {
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </motion.button>
 
-          {/* Desktop: avatar dropdown menu */}
           <div className="hidden lg:block">
             <UserMenu />
           </div>
 
-          {/* Hamburger — visible below lg breakpoint */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="lg:hidden p-2 rounded-lg hover:bg-dark-border transition-colors"
@@ -81,7 +78,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile/collapsed dropdown menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -91,7 +87,7 @@ export default function Navbar() {
             transition={{ duration: 0.25 }}
             className="lg:hidden overflow-hidden border-t border-dark-border"
           >
-            <div className="px-4 py-2 space-y-1">
+            <div className="px-4 py-2 space-y-1 max-h-[70vh] overflow-y-auto">
               {navItems.map((item) => {
                 const isActive = location.pathname.startsWith(item.path);
                 return (
@@ -99,8 +95,9 @@ export default function Navbar() {
                     key={item.path}
                     to={item.path}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-dark-border hover:text-white'
-                      }`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-dark-border hover:text-white'
+                    }`}
                   >
                     <item.icon className="w-4 h-4" />
                     {item.label}

@@ -58,3 +58,8 @@ export const careerTrackService = {
     apiClient.post('/career-tracks/checklist/toggle', { checklist_item_id: checklistItemId }),
   getTierProgress: (id: number) => apiClient.get(`/career-tracks/${id}/progress`),
 };
+
+export const contactService = {
+  submit: (data: { name: string; email: string; category: string; subject: string; message: string }) =>
+    apiClient.post('/contact/', data),
+};

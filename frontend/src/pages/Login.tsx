@@ -21,7 +21,11 @@ export default function Login() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      if (err.response?.status === 403) {
+        setError('Please verify your email before logging in. Check your inbox for the verification link.');
+      } else {
+        setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }

@@ -13,12 +13,28 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const isAuthRequest = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
+    const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !isAuthRequest) {
-      localStorage.removeItem('access_token');
-      window.location.href = '/login';
+    if (error.response?.status === 401 && !isAuthRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const refreshToken = localStorage.getItem('refresh_token');
+
+      if (refreshToken) {
+        try {
+          const res = await axios.post(`${BASE_URL}/auth/refresh`, { refresh_token: refreshToken });
+          localStorage.setItem('access_token', res.data.access_token);
+          originalRequest.headers.Authorization = `Bearer ${res.data.access_token}`;
+          return apiClient(originalRequest);
+        } catch {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          window.location.href = '/login';
+        }
+      } else {
+        window.location.href = '/login';
+      }
     } else if (error.response?.status === 429) {
       toast.error('Too many requests. Please slow down.');
     } else if (error.response?.status >= 500) {
