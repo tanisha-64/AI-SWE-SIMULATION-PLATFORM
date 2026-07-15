@@ -11,3 +11,5 @@ class User(BaseModel):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     is_premium = Column(Boolean, default=False)
+    is_verified = Column(Boolean, default=False)
+    verification_token = Column(String, nullable=True)

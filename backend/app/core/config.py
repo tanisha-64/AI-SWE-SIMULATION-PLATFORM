@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = ""
     HF_API_KEY: str = ""
     COHERE_API_KEY: str = ""
+    RESEND_API_KEY: str = ""
+    FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:
         env_file = ".env"

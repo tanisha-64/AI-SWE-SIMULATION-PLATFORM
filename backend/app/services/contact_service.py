@@ -3,7 +3,6 @@ from fastapi import HTTPException
 from app.models.contact import ContactMessage
 from app.services.email_service import send_contact_confirmation_email
 
-
 VALID_CATEGORIES = {"bug", "feature_request", "help", "feedback"}
 
 

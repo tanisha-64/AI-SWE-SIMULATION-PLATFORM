@@ -14,10 +14,7 @@ from app.services.email_service import send_verification_email
 def register_user(db: Session, user_data: UserRegister) -> dict:
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
     verification_token = secrets.token_urlsafe(32)
 
@@ -44,10 +41,7 @@ def register_user(db: Session, user_data: UserRegister) -> dict:
 def verify_email(db: Session, token: str) -> dict:
     user = db.query(User).filter(User.verification_token == token).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification link"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired verification link")
 
     user.is_verified = True
     user.verification_token = None
@@ -74,16 +68,10 @@ def resend_verification_email(db: Session, email: str) -> dict:
 def login_user(db: Session, login_data: UserLogin) -> dict:
     user = db.query(User).filter(User.email == login_data.email).first()
     if not user or not verify_password(login_data.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
     if not user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Please verify your email before logging in. Check your inbox."
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email before logging in. Check your inbox.")
 
     access_token = create_access_token(user.id)
     refresh_token = create_refresh_token(user.id)
