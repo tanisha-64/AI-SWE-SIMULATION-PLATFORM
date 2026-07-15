@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, field_validator
 
+
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
@@ -27,6 +28,7 @@ class UserOut(BaseModel):
     email: EmailStr
     full_name: str
     is_active: bool
+    is_verified: bool
 
     class Config:
         from_attributes = True
@@ -40,3 +42,21 @@ class Token(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+
+
+class RegisterResponse(BaseModel):
+    message: str
+    email_sent: bool
+    user_id: int
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
