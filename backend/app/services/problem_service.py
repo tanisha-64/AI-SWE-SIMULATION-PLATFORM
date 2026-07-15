@@ -77,14 +77,28 @@ def generate_and_save_problem(db: Session, category: str, difficulty: str, probl
     return create_problem(db, problem_create)
 
 
+import re
+
 def generate_and_save_bulk(db: Session, category: str, difficulty: str, problem_type: str, count: int) -> list:
+    category_clean = category.strip()
+
+    if len(category_clean) < 3 or len(category_clean) > 60:
+        raise ValueError("Category must be between 3 and 60 characters")
+
+    if not re.match(r'^[a-zA-Z0-9\s\-]+$', category_clean):
+        raise ValueError("Category contains invalid characters")
+
+    word_count = len(category_clean.split())
+    if word_count > 6:
+        raise ValueError("Category should be a short topic name, not a sentence")
+
     created = []
     for _ in range(count):
         try:
-            problem = generate_and_save_problem(db, category, difficulty, problem_type)
+            problem = generate_and_save_problem(db, category_clean, difficulty, problem_type)
             created.append(problem)
         except Exception as e:
-            print(f"❌ GENERATION FAILED: {type(e).__name__}: {e}")
+            print(f"❌ FAILED for topic '{category_clean}': {type(e).__name__}: {e}")
             continue
     return created
 

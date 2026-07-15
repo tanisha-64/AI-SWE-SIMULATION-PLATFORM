@@ -1,10 +1,17 @@
-from app.services.streak_service import record_activity
+import json
+from datetime import date
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from openai import OpenAI
+from app.core.config import settings
 from app.models.debugging_challenge import DebuggingChallenge, DebuggingAttempt
 from app.services.code_execution_service import code_executor
 from app.services.ai.debugging_hint_service import get_debugging_hint
+from app.services.ai.prompt_templates import bug_injection_prompt
 from app.services.analytics_service import recalculate_user_analytics
+from app.services.streak_service import record_activity
+
+client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
 
 
 def get_all_challenges(db: Session, difficulty: str = None):
@@ -93,3 +100,62 @@ def submit_debug_fix(db: Session, user_id: int, challenge_id: int, code: str) ->
         "total_count": total_count,
         "test_results": execution_result["results"]
     }
+
+
+def _generate_debug_challenge(topic: str, difficulty: str) -> dict:
+    """Uses AI to write a short correct function AND intentionally inject one realistic bug into it."""
+    prompt = bug_injection_prompt(topic, difficulty)
+
+    response = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "system", "content": "You are a precise exercise creator. Respond only in valid JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.6,
+        max_tokens=700
+    )
+
+    raw = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
+    start, end = raw.find("{"), raw.rfind("}")
+    return json.loads(raw[start:end + 1])
+
+
+def get_daily_debug_challenges(db: Session, user_id: int) -> list:
+    """Auto-generates 6 mixed-difficulty debugging challenges per day, reused by all users all day."""
+    today = date.today()
+
+    todays_challenges = db.query(DebuggingChallenge).filter(
+        DebuggingChallenge.daily_challenge_date == today
+    ).all()
+
+    if len(todays_challenges) < 6:
+        difficulty_plan = ["easy", "easy", "medium", "medium", "hard", "hard"]
+        topics = ["Array Logic", "Loop Conditions", "String Manipulation", "Recursion", "Dictionary Usage", "Sorting Logic"]
+        needed = 6 - len(todays_challenges)
+
+        for i in range(needed):
+            idx = len(todays_challenges) + i
+            try:
+                data = _generate_debug_challenge(
+                    topics[idx % len(topics)],
+                    difficulty_plan[idx % len(difficulty_plan)]
+                )
+                new_challenge = DebuggingChallenge(
+                    title=data["title"],
+                    description=data["description"],
+                    broken_code=data["broken_code"],
+                    language="python",
+                    difficulty=difficulty_plan[idx % len(difficulty_plan)],
+                    test_cases=data.get("test_cases", []),
+                    bug_explanation=data.get("bug_explanation", ""),
+                    daily_challenge_date=today
+                )
+                db.add(new_challenge)
+                todays_challenges.append(new_challenge)
+            except Exception as e:
+                print(f"❌ Daily debug challenge generation failed: {e}")
+                continue
+        db.commit()
+
+    return todays_challenges

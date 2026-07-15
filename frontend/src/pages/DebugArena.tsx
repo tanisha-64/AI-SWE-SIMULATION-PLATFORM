@@ -26,11 +26,11 @@ export default function DebugArena() {
 
   useEffect(() => {
     setLoading(true);
-    debugService.getAll(filter || undefined).then((res) => {
+    debugService.getDaily().then((res) => {
       setChallenges(res.data);
       setLoading(false);
     });
-  }, [filter]);
+  }, []);
 
   return (
     <AppLayout>
@@ -91,11 +91,10 @@ export default function DebugArena() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setFilter(d)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
-                    filter === d
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${filter === d
                       ? 'bg-primary text-white border-primary'
                       : 'bg-dark-card border-dark-border text-gray-400 hover:text-white hover:border-primary/30'
-                  }`}
+                    }`}
                 >
                   {d === '' ? 'All Threats' : d.charAt(0).toUpperCase() + d.slice(1)}
                 </motion.button>

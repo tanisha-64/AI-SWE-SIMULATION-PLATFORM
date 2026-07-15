@@ -34,13 +34,11 @@ export const submissionService = {
 };
 
 export const debugService = {
-  getAll: (difficulty?: string) =>
-    apiClient.get('/debug-arena/', { params: { difficulty } }),
+  getAll: (difficulty?: string) => apiClient.get('/debug-arena/', { params: { difficulty } }),
+  getDaily: () => apiClient.get('/debug-arena/daily/today'),
   getById: (id: number) => apiClient.get(`/debug-arena/${id}`),
-  getHint: (data: { challenge_id: number; current_code: string }) =>
-    apiClient.post('/debug-arena/hint', data),
-  submitFix: (data: { challenge_id: number; code: string }) =>
-    apiClient.post('/debug-arena/submit', data),
+  getHint: (data: { challenge_id: number; current_code: string }) => apiClient.post('/debug-arena/hint', data),
+  submitFix: (data: { challenge_id: number; code: string }) => apiClient.post('/debug-arena/submit', data),
 };
 
 export const chatService = {
@@ -51,4 +49,12 @@ export const chatService = {
 
 export const agentService = {
   runCareerAdvisor: () => apiClient.post('/agents/career-advisor'),
+};
+
+export const careerTrackService = {
+  getAllTiers: () => apiClient.get('/career-tracks/'),
+  getTierDetail: (id: number) => apiClient.get(`/career-tracks/${id}`),
+  toggleChecklistItem: (checklistItemId: number) =>
+    apiClient.post('/career-tracks/checklist/toggle', { checklist_item_id: checklistItemId }),
+  getTierProgress: (id: number) => apiClient.get(`/career-tracks/${id}/progress`),
 };

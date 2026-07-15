@@ -15,6 +15,9 @@ import Mentor from './pages/Mentor';
 import NotFound from './pages/NotFound';
 import McqWorkspace from './pages/McqWorkspace';
 import DailyChallenge from './pages/DailyChallenge';
+import CareerTracks from './pages/CareerTracks';
+import CareerTrackDetail from './pages/CareerTrackDetail';
+import Welcome from './pages/Welcome';
 
 
 
@@ -26,6 +29,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/problems" element={<ProtectedRoute><Problems /></ProtectedRoute>} />
           <Route path="/problems/:id" element={<ProtectedRoute><ProblemWorkspace /></ProtectedRoute>} />
@@ -37,6 +41,8 @@ function App() {
           <Route path="/mcq/:id" element={<ProtectedRoute><McqWorkspace /></ProtectedRoute>} />
           <Route path="/daily-challenge" element={<ProtectedRoute><DailyChallenge /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
+          <Route path="/career-tracks" element={<ProtectedRoute><CareerTracks /></ProtectedRoute>} />
+          <Route path="/career-tracks/:id" element={<ProtectedRoute><CareerTrackDetail /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

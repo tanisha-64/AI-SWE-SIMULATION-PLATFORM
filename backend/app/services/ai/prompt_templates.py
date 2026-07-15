@@ -217,3 +217,24 @@ Respond ONLY in valid JSON with this exact structure:
   ]
 }}
 Include exactly 8-10 checklist_items total, mixing all three categories. No markdown, just JSON."""
+
+
+def bug_injection_prompt(topic: str, difficulty: str) -> str:
+    return f"""You are creating a debugging exercise for programming students.
+
+Write a short, correct Python function solving a simple problem related to: {topic} (difficulty: {difficulty}).
+Then intentionally introduce ONE realistic bug (off-by-one error, wrong operator, wrong variable, etc.)
+into it — the kind of mistake a real developer might make.
+
+Respond ONLY in valid JSON:
+{{
+  "title": "string",
+  "description": "string (what the function should do)",
+  "broken_code": "string (the buggy Python code, with \\n for newlines)",
+  "bug_explanation": "string (internal note: what the bug is, for hint generation — not shown to student)",
+  "test_cases": [
+    {{"input": "string", "output": "string", "is_sample": true}},
+    {{"input": "string", "output": "string", "is_sample": false}}
+  ]
+}}
+No markdown, just JSON."""

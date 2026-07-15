@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, JSON
+from sqlalchemy import Column, String, Text, Integer, ForeignKey, JSON, Date
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
@@ -13,6 +13,8 @@ class DebuggingChallenge(BaseModel):
     difficulty = Column(String, nullable=False)
     test_cases = Column(JSON, nullable=False)
     bug_explanation = Column(Text, nullable=False)  # hidden from student, used for AI context
+    daily_challenge_date = Column(Date, nullable=True)
+
 
 
 class DebuggingAttempt(BaseModel):

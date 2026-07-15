@@ -43,11 +43,12 @@ export default function StreakCalendar() {
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.003 }}
-            className={`w-3 h-3 rounded-sm ${getColor(day.count)}`}
-            title={`${day.date}: ${day.count} submissions`}
+            className={`w-3 h-3 rounded-sm ${getColor(day.count)} cursor-help`}
+            title={`${new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${day.count} submission${day.count !== 1 ? 's' : ''}`}
           />
         ))}
       </div>
+      <p className="text-xs text-gray-500 mt-2">Hover over a square to see the date and submission count</p>
     </div>
   );
 }

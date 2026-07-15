@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { Flame } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import UserMenu from './UserMenu';
 import {
   Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
@@ -21,8 +22,9 @@ export default function Navbar() {
     { path: '/problems', label: 'Problems', icon: ListChecks },
     { path: '/debug-arena', label: 'Debug Arena', icon: Bug },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
     { path: '/daily-challenge', label: 'Daily Challenge', icon: Flame },
+    { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
+    { path: '/career-tracks', label: 'Career Tracks', icon: TrendingUp },
   ];
 
   return (
@@ -97,9 +99,8 @@ export default function Navbar() {
                     key={item.path}
                     to={item.path}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-dark-border hover:text-white'
-                    }`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-dark-border hover:text-white'
+                      }`}
                   >
                     <item.icon className="w-4 h-4" />
                     {item.label}

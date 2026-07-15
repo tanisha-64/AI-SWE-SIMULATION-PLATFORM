@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.db.session import get_db
+from app.services.debugging_service import get_daily_debug_challenges
 from app.schemas.debugging import (
     DebugChallengeOut, HintRequest, HintOut,
     DebugSubmitRequest, DebugSubmitOut
@@ -22,6 +23,11 @@ def list_challenges(
     current_user: User = Depends(get_current_user)
 ):
     return get_all_challenges(db, difficulty)
+
+
+@router.get("/daily/today", response_model=List[DebugChallengeOut])
+def daily_challenges(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return get_daily_debug_challenges(db, current_user.id)
 
 
 @router.get("/{challenge_id}", response_model=DebugChallengeOut)

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { problemService } from '../api/services';
@@ -58,18 +59,33 @@ export default function Problems() {
     }
   };
 
+  const isValidTopic = (text: string) => {
+    const trimmed = text.trim();
+    return trimmed.length >= 3 && trimmed.length <= 60 && /^[a-zA-Z0-9\s-]+$/.test(trimmed) && trimmed.split(' ').length <= 6;
+  };
+
   const handleGenerateNew = async () => {
+    const trimmedQuery = searchQuery.trim();
+
+    if (!isValidTopic(trimmedQuery)) {
+      toast.error('Please enter a valid topic name (letters/numbers only, max 6 words).');
+      return;
+    }
+
+    const confirmed = window.confirm(`Generate 3 new AI problems on "${trimmedQuery}"?`);
+    if (!confirmed) return;
+
     setGenerating(true);
     setGenerateMsg('');
     try {
       await problemService.generate({
-        category: searchQuery,
+        category: trimmedQuery,
         difficulty: difficultyFilter || 'medium',
         problem_type: typeFilter || 'coding',
         count: 3,
       });
       setGenerateMsg('✨ New problems generated! Refreshing...');
-      const res = await problemService.search(searchQuery);
+      const res = await problemService.search(trimmedQuery);
       setProblems(res.data);
     } catch (err) {
       setGenerateMsg('Generation failed. Try a different topic.');
