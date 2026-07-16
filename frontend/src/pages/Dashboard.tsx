@@ -7,7 +7,7 @@ import StatCard from '../components/dashboard/StatCard';
 import ReadinessGauge from '../components/dashboard/ReadinessGauge';
 import StreakCalendar from '../components/dashboard/StreakCalendar';
 import { Flame, Target, Award, TrendingUp, Code, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Analytics {
   total_problems_solved: number;
@@ -31,10 +31,24 @@ interface Recommendation {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [streak, setStreak] = useState<Streak | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 🌟 GADBARI FIX 1: First-time user welcome redirect so Jarvis can speak!
+  useEffect(() => {
+    if (user) {
+      const hasSeenTour = localStorage.getItem(`hasSeenTour_${user.id}`);
+      if (!hasSeenTour) {
+        // Is user ke liye tour state register kar dete hain taaki baar-baar loop na bane
+        localStorage.setItem(`hasSeenTour_${user.id}`, 'true');
+        // Seedhe welcome page redirect, jahan Jarvis speech trigger hoga
+        navigate('/welcome');
+      }
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     Promise.all([
@@ -189,7 +203,6 @@ export default function Dashboard() {
                           {rec.difficulty}
                         </span>
                       </div>
-                      
                     </Link>
                   </motion.div>
                 ))}
