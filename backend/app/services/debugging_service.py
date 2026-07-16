@@ -134,8 +134,8 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
         difficulty_plan = ["easy", "easy", "medium", "medium", "hard", "hard"]
         topics = ["Array Logic", "Loop Conditions", "String Manipulation", "Recursion", "Dictionary Usage", "Sorting Logic"]
         
-        # 🌟 FIX: Jab tak 6 challenges poori nahi ho jaatin, tab tak loop chalta rahega
-        attempts = 0  # Infinite loop se bachne ke liye safe counter
+        # 🌟 BS ITNA CHANGE: Range loop ko safe while loop se badla taaki failure par bhi retry kare
+        attempts = 0
         while len(todays_challenges) < 6 and attempts < 12:
             idx = len(todays_challenges)
             attempts += 1
@@ -155,13 +155,12 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
                     daily_challenge_date=today
                 )
                 db.add(new_challenge)
-                db.flush() 
+                db.flush() # Loop state sahi rakhne ke liye flush zaroori hai
                 todays_challenges.append(new_challenge)
             except Exception as e:
-                print(f"❌ Daily debug challenge generation failed at index {idx}: {e}")
-                # AI error aane par we just wait a split second and continue to retry
+                print(f"❌ Daily debug challenge generation failed: {e}")
                 import time
-                time.sleep(0.5)
+                time.sleep(0.5) # Chota sa pause taaki API limit hit na ho
                 continue
         db.commit()
 
