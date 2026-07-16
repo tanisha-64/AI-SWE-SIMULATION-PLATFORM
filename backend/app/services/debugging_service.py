@@ -16,7 +16,6 @@ client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/op
 
 def get_all_challenges(db: Session, difficulty: str = None):
     query = db.query(DebuggingChallenge)
-    # 🌟 GADBARI 1 FIX: Agar difficulty 'all' ya None aaye, toh filter mat lagao
     if difficulty and difficulty.lower() != "all":
         query = query.filter(DebuggingChallenge.difficulty == difficulty.lower())
     return query.all()
@@ -134,8 +133,8 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
         difficulty_plan = ["easy", "easy", "medium", "medium", "hard", "hard"]
         topics = ["Array Logic", "Loop Conditions", "String Manipulation", "Recursion", "Dictionary Usage", "Sorting Logic"]
         
-        # 🌟 BS ITNA CHANGE: Range loop ko safe while loop se badla taaki failure par bhi retry kare
         attempts = 0
+        # 🌟 FIXED LOOP & INDENTATION STRUCTURE
         while len(todays_challenges) < 6 and attempts < 12:
             idx = len(todays_challenges)
             attempts += 1
@@ -144,10 +143,11 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
                     topics[idx % len(topics)],
                     difficulty_plan[idx % len(difficulty_plan)]
                 )
+                
                 new_challenge = DebuggingChallenge(
-                    title=data["title"],
-                    description=data["description"],
-                    broken_code=data["broken_code"],
+                    title=data.get("title", "Debugging Challenge"),
+                    description=data.get("description", "Fix the bug in the code below."),
+                    broken_code=data.get("broken_code", ""),
                     language="python",
                     difficulty=difficulty_plan[idx % len(difficulty_plan)],
                     test_cases=data.get("test_cases", []),
@@ -155,12 +155,12 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
                     daily_challenge_date=today
                 )
                 db.add(new_challenge)
-                db.flush() # Loop state sahi rakhne ke liye flush zaroori hai
+                db.flush() 
                 todays_challenges.append(new_challenge)
             except Exception as e:
                 print(f"❌ Daily debug challenge generation failed: {e}")
                 import time
-                time.sleep(0.5) # Chota sa pause taaki API limit hit na ho
+                time.sleep(0.5)
                 continue
         db.commit()
 
