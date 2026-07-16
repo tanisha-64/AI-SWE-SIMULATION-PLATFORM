@@ -16,8 +16,9 @@ client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/op
 
 def get_all_challenges(db: Session, difficulty: str = None):
     query = db.query(DebuggingChallenge)
-    if difficulty:
-        query = query.filter(DebuggingChallenge.difficulty == difficulty)
+    # 🌟 GADBARI 1 FIX: Agar difficulty 'all' ya None aaye, toh filter mat lagao
+    if difficulty and difficulty.lower() != "all":
+        query = query.filter(DebuggingChallenge.difficulty == difficulty.lower())
     return query.all()
 
 
@@ -135,7 +136,8 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
         needed = 6 - len(todays_challenges)
 
         for i in range(needed):
-            idx = len(todays_challenges) + i
+            # 🌟 GADBARI 2 FIX: Har loop iteration mein unique index pakadne ke liye actual length check karein
+            idx = len(todays_challenges)
             try:
                 data = _generate_debug_challenge(
                     topics[idx % len(topics)],
@@ -152,6 +154,7 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
                     daily_challenge_date=today
                 )
                 db.add(new_challenge)
+                db.flush() # 🌟 Loop ke andar state update rakhne ke liye flush zaroori hai
                 todays_challenges.append(new_challenge)
             except Exception as e:
                 print(f"❌ Daily debug challenge generation failed: {e}")
