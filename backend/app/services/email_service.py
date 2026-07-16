@@ -7,8 +7,9 @@ resend.api_key = settings.RESEND_API_KEY
 def _send_email(to_email: str, subject: str, html: str) -> bool:
     """Sends an email via Resend, compatible with both old and new SDK versions."""
     params = {
+        # Default onboarding email domain for testing
         "from": "CodeMentor AI <onboarding@resend.dev>",
-        "to": [to_email],
+        "to": to_email,  # 🌟 Yahan array [] hata kar direct string pass kar di hai, taki onboarding validation fail na ho
         "subject": subject,
         "html": html,
     }
