@@ -83,10 +83,25 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-6xl mx-auto"
         >
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold">Welcome, {user?.full_name} 👋</h1>
-            <p className="text-gray-400">Ready to level up your skills today?</p>
+          {/* Header Area with Manual Jarvis Tour Link */}
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">Welcome, {user?.full_name} 👋</h1>
+              <p className="text-gray-400">Ready to level up your skills today?</p>
+            </div>
+            
+            <motion.button
+              whileHover={{ scale: 1.02, backgroundColor: 'rgba(34,211,238,0.1)' }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/welcome')}
+              className="flex items-center gap-2 border border-cyan-500/30 text-cyan-400 px-4 py-2 rounded-xl text-sm font-medium transition-colors bg-cyan-500/5 shadow-lg shadow-cyan-500/5 self-start sm:self-center"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              🤖 Talk to Jarvis Guide
+            </motion.button>
           </div>
 
           {/* Stat Cards */}
