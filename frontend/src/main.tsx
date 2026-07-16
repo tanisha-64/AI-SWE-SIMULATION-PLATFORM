@@ -4,10 +4,13 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider } from './context/ThemeContext.tsx'
 import { Toaster } from 'react-hot-toast'
+import TopProgressBar from './components/ui/TopProgressBar';
+
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
+      <TopProgressBar />
       <App />
       <Toaster
         position="top-right"
