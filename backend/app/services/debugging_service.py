@@ -122,51 +122,48 @@ def _generate_debug_challenge(topic: str, difficulty: str) -> dict:
 
 
 def get_daily_debug_challenges(db: Session, user_id: int) -> list:
-    """Auto-generates 7 challenges per day: 4 easy, 2 medium, 1 hard. Reused by all users all day."""
+    """Auto-generates 6 basic Python debugging challenges per day. Reused by all users all day."""
     today = date.today()
-    TARGET_COUNT = 7
+    TARGET_COUNT = 6
 
     todays_challenges = db.query(DebuggingChallenge).filter(
         DebuggingChallenge.daily_challenge_date == today
     ).all()
 
     if len(todays_challenges) < TARGET_COUNT:
-        difficulty_plan = ["easy", "easy", "easy", "easy", "medium", "medium", "hard"]
+        difficulty_plan = ["easy", "easy", "easy", "medium", "medium", "hard"]
         topics = [
-            "Array Logic", "Loop Conditions", "String Manipulation",
-            "Dictionary Usage", "Recursion", "Sorting Logic", "Graph Traversal"
+            "Array/List Indexing", "Loop Conditions", "String Manipulation",
+            "Dictionary Usage", "Recursion Basics", "Sorting Logic"
         ]
-
-        max_attempts_per_challenge = 3
 
         for idx in range(len(todays_challenges), TARGET_COUNT):
             difficulty = difficulty_plan[idx]
             topic = topics[idx]
 
-            for attempt in range(max_attempts_per_challenge):
-                try:
-                    data = _generate_debug_challenge(topic, difficulty)
+            try:
+                data = _generate_debug_challenge(topic, difficulty)
 
-                    if not data.get("broken_code") or not data.get("test_cases"):
-                        raise ValueError("Incomplete challenge data from AI")
-
-                    new_challenge = DebuggingChallenge(
-                        title=data["title"],
-                        description=data["description"],
-                        broken_code=data["broken_code"],
-                        language="python",
-                        difficulty=difficulty,
-                        test_cases=data.get("test_cases", []),
-                        bug_explanation=data.get("bug_explanation", ""),
-                        daily_challenge_date=today
-                    )
-                    db.add(new_challenge)
-                    db.commit()
-                    todays_challenges.append(new_challenge)
-                    break
-                except Exception as e:
-                    print(f"❌ Debug challenge generation attempt {attempt + 1} failed for '{topic}' ({difficulty}): {e}")
-                    db.rollback()
+                if not data.get("broken_code") or not data.get("test_cases"):
+                    print(f"⚠️ Skipping incomplete challenge for '{topic}'")
                     continue
+
+                new_challenge = DebuggingChallenge(
+                    title=data["title"],
+                    description=data["description"],
+                    broken_code=data["broken_code"],
+                    language="python",
+                    difficulty=difficulty,
+                    test_cases=data.get("test_cases", []),
+                    bug_explanation=data.get("bug_explanation", ""),
+                    daily_challenge_date=today
+                )
+                db.add(new_challenge)
+                db.commit()
+                todays_challenges.append(new_challenge)
+            except Exception as e:
+                print(f"❌ Debug challenge generation failed for '{topic}' ({difficulty}): {e}")
+                db.rollback()
+                continue
 
     return todays_challenges
