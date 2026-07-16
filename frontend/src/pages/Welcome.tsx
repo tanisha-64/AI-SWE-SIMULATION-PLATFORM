@@ -28,8 +28,16 @@ export default function Welcome() {
 
   const lines = SCRIPT(user?.full_name?.split(' ')[0] || 'there');
 
+  // 🌟 FIX 1: Browser voices ready karne ke liye initial wake-up call
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+    }
+  }, []);
+
   useEffect(() => {
     if (!started) return;
+
     if (lineIdx >= lines.length) {
       const timer = setTimeout(() => navigate('/dashboard'), 1500);
       return () => clearTimeout(timer);
@@ -40,13 +48,28 @@ export default function Welcome() {
       return () => clearTimeout(timer);
     }
 
-    speak(lines[lineIdx], () => {
-      if (!hasSkippedRef.current) {
-        setTimeout(() => setLineIdx((i) => i + 1), 300);
+    // 🌟 FIX 2: Autoplay timing aur state collisions bypass karne ke liye micro-delay block
+    const playSpeech = () => {
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
       }
-    });
 
-    return () => stop();
+      speak(lines[lineIdx], () => {
+        if (!hasSkippedRef.current) {
+          // Natural gap between sentences
+          setTimeout(() => setLineIdx((i) => i + 1), 400);
+        }
+      });
+    };
+
+    const speechTimer = setTimeout(() => {
+      playSpeech();
+    }, 150);
+
+    return () => {
+      clearTimeout(speechTimer);
+      stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lineIdx, started, muted]);
 
@@ -57,6 +80,10 @@ export default function Welcome() {
   };
 
   const handleStart = () => {
+    // 🌟 FIX 3: Force cancel any pending cues, ensuring immediate fresh playback on click
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
     setStarted(true);
   };
 
