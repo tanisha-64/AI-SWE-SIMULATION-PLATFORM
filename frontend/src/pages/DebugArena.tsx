@@ -25,11 +25,22 @@ export default function DebugArena() {
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    setLoading(true);
-    debugService.getDaily().then((res) => {
-      setAllChallenges(res.data);
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    const fetchUntilFull = async () => {
+      setLoading(true);
+      while (attempts < maxAttempts) {
+        const res = await debugService.getDaily();
+        setAllChallenges(res.data);
+        if (res.data.length >= 5) break;
+        attempts++;
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
       setLoading(false);
-    });
+    };
+
+    fetchUntilFull();
   }, []);
 
   const challenges = filter ? allChallenges.filter((c) => c.difficulty === filter) : allChallenges;
@@ -91,11 +102,10 @@ export default function DebugArena() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setFilter(d)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
-                    filter === d
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${filter === d
                       ? 'bg-primary text-white border-primary'
                       : 'bg-dark-card border-dark-border text-gray-400 hover:text-white hover:border-primary/30'
-                  }`}
+                    }`}
                 >
                   {d === '' ? 'All' : d.charAt(0).toUpperCase() + d.slice(1)}
                 </motion.button>

@@ -122,32 +122,33 @@ def _generate_debug_challenge(topic: str, difficulty: str) -> dict:
 
 
 def get_daily_debug_challenges(db: Session, user_id: int) -> list:
-    """Auto-generates 6 basic Python debugging challenges per day. Reused by all users all day."""
+    """
+    Returns today's debugging challenges (up to 5, basic Python topics).
+    Generates AT MOST ONE new challenge per request to avoid timeouts —
+    the set fills up to 5 as users make requests throughout the day.
+    """
     today = date.today()
-    TARGET_COUNT = 6
+    TARGET_COUNT = 5
 
     todays_challenges = db.query(DebuggingChallenge).filter(
         DebuggingChallenge.daily_challenge_date == today
     ).all()
 
     if len(todays_challenges) < TARGET_COUNT:
-        difficulty_plan = ["easy", "easy", "easy", "medium", "medium", "hard"]
+        difficulty_plan = ["easy", "easy", "medium", "medium", "hard"]
         topics = [
-            "Array/List Indexing", "Loop Conditions", "String Manipulation",
-            "Dictionary Usage", "Recursion Basics", "Sorting Logic"
+            "List Indexing", "Loop Conditions", "String Manipulation",
+            "Dictionary Usage", "Basic Recursion"
         ]
 
-        for idx in range(len(todays_challenges), TARGET_COUNT):
-            difficulty = difficulty_plan[idx]
-            topic = topics[idx]
+        idx = len(todays_challenges)
+        difficulty = difficulty_plan[idx]
+        topic = topics[idx]
 
-            try:
-                data = _generate_debug_challenge(topic, difficulty)
+        try:
+            data = _generate_debug_challenge(topic, difficulty)
 
-                if not data.get("broken_code") or not data.get("test_cases"):
-                    print(f"⚠️ Skipping incomplete challenge for '{topic}'")
-                    continue
-
+            if data.get("broken_code") and data.get("test_cases"):
                 new_challenge = DebuggingChallenge(
                     title=data["title"],
                     description=data["description"],
@@ -161,9 +162,8 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
                 db.add(new_challenge)
                 db.commit()
                 todays_challenges.append(new_challenge)
-            except Exception as e:
-                print(f"❌ Debug challenge generation failed for '{topic}' ({difficulty}): {e}")
-                db.rollback()
-                continue
+        except Exception as e:
+            print(f"❌ Debug challenge generation failed for '{topic}' ({difficulty}): {e}")
+            db.rollback()
 
     return todays_challenges
