@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import AppLayout from '../components/layout/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import { agentService, analyticsService } from '../api/services';
-import { Crown, Sparkles, Loader2, Zap, X, Mail, Calendar } from 'lucide-react';
+import { Crown, Sparkles, Loader2, Zap, X, Mail } from 'lucide-react';
 
 export default function Profile() {
   const { user } = useAuth();

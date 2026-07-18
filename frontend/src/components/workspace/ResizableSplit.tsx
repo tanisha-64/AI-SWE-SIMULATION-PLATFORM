@@ -1,8 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import { GripVertical, PanelLeftClose, PanelRightClose, Columns2 } from 'lucide-react';
-
 interface ResizableSplitProps {
   left: ReactNode;
   right: ReactNode;
