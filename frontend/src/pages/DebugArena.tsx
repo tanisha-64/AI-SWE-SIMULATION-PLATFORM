@@ -92,7 +92,7 @@ export default function DebugArena() {
               <h1 className="font-display text-3xl font-bold">Debugging Arena</h1>
             </div>
             <p className="text-gray-400 mb-6">
-              Today's 6 AI-generated debugging challenges. Fresh set every day.
+              Today's debugging challenges. Fresh set every day.
             </p>
 
             <div className="flex gap-2 mb-8">
