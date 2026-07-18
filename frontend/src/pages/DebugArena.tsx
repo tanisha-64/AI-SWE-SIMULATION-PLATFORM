@@ -103,8 +103,8 @@ export default function DebugArena() {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setFilter(d)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${filter === d
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-dark-card border-dark-border text-gray-400 hover:text-white hover:border-primary/30'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-dark-card border-dark-border text-gray-400 hover:text-white hover:border-primary/30'
                     }`}
                 >
                   {d === '' ? 'All' : d.charAt(0).toUpperCase() + d.slice(1)}
