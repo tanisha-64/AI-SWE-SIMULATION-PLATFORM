@@ -93,13 +93,18 @@ class CodeExecutor:
 
         for idx, test in enumerate(test_cases):
             input_data = test.get("input", "")
-            expected_output = test.get("output", "").strip()
+            expected_output = str(test.get("output", "")).strip()
             is_sample = test.get("is_sample", False)
 
             run_result = self.run_single(code, language, input_data)
             actual_output = run_result["stdout"].strip()
 
-            passed = run_result["success"] and actual_output == expected_output
+            # Whitespace-tolerant comparison: ignore differences in spacing
+            # (e.g. "[0, 1]" vs "[0,1]") which are formatting, not logic errors
+            normalized_actual = "".join(actual_output.split())
+            normalized_expected = "".join(expected_output.split())
+
+            passed = run_result["success"] and normalized_actual == normalized_expected
             total_time_ms += run_result["execution_time_ms"]
 
             results.append({

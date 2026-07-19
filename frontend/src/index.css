@@ -112,3 +112,28 @@ h1, h2, h3, .font-display {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
+
+/* Landing page always stays dark, regardless of user's theme preference */
+.force-dark {
+  background-color: #0f0f1a !important;
+}
+.force-dark.bg-dark-bg {
+  background-color: #0f0f1a !important;
+  color: #f1f1f1 !important;
+}
+.force-dark .bg-dark-card {
+  background-color: #1a1a2e !important;
+}
+.force-dark .border-dark-border {
+  border-color: #2a2a3e !important;
+}
+.force-dark .text-white,
+.force-dark .text-gray-100,
+.force-dark .text-gray-200,
+.force-dark .text-gray-300 {
+  color: #f1f1f1 !important;
+}
+.force-dark .text-gray-400,
+.force-dark .text-gray-500 {
+  color: #9ca3af !important;
+}

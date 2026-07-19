@@ -3,6 +3,8 @@ from datetime import date
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from openai import OpenAI
+import time
+from app.core.redis_client import redis_client
 from app.core.config import settings
 from app.models.debugging_challenge import DebuggingChallenge, DebuggingAttempt
 from app.services.code_execution_service import code_executor
@@ -122,11 +124,6 @@ def _generate_debug_challenge(topic: str, difficulty: str) -> dict:
 
 
 def get_daily_debug_challenges(db: Session, user_id: int) -> list:
-    """
-    Returns today's debugging challenges (up to 5, basic Python topics).
-    Generates AT MOST ONE new challenge per request to avoid timeouts —
-    the set fills up to 5 as users make requests throughout the day.
-    """
     today = date.today()
     TARGET_COUNT = 5
 
@@ -135,35 +132,55 @@ def get_daily_debug_challenges(db: Session, user_id: int) -> list:
     ).all()
 
     if len(todays_challenges) < TARGET_COUNT:
-        difficulty_plan = ["easy", "easy", "medium", "medium", "hard"]
-        topics = [
-            "List Indexing", "Loop Conditions", "String Manipulation",
-            "Dictionary Usage", "Basic Recursion"
-        ]
-
-        idx = len(todays_challenges)
-        difficulty = difficulty_plan[idx]
-        topic = topics[idx]
-
+        lock_key = f"daily_debug_lock:{today}"
+        lock_acquired = False
         try:
-            data = _generate_debug_challenge(topic, difficulty)
+            lock_acquired = redis_client.set(lock_key, "1", nx=True, ex=90)
+        except Exception:
+            lock_acquired = True
 
-            if data.get("broken_code") and data.get("test_cases"):
-                new_challenge = DebuggingChallenge(
-                    title=data["title"],
-                    description=data["description"],
-                    broken_code=data["broken_code"],
-                    language="python",
-                    difficulty=difficulty,
-                    test_cases=data.get("test_cases", []),
-                    bug_explanation=data.get("bug_explanation", ""),
-                    daily_challenge_date=today
-                )
-                db.add(new_challenge)
-                db.commit()
-                todays_challenges.append(new_challenge)
-        except Exception as e:
-            print(f"❌ Debug challenge generation failed for '{topic}' ({difficulty}): {e}")
-            db.rollback()
+        if lock_acquired:
+            difficulty_plan = ["easy", "easy", "medium", "medium", "hard"]
+            topics = [
+                "List Indexing", "Loop Conditions", "String Manipulation",
+                "Dictionary Usage", "Basic Recursion"
+            ]
+            try:
+                for idx in range(len(todays_challenges), TARGET_COUNT):
+                    difficulty = difficulty_plan[idx]
+                    topic = topics[idx]
+                    try:
+                        data = _generate_debug_challenge(topic, difficulty)
+                        if not data.get("broken_code") or not data.get("test_cases"):
+                            print(f"⚠️ Skipping incomplete challenge for '{topic}'")
+                            continue
 
-    return todays_challenges
+                        new_challenge = DebuggingChallenge(
+                            title=data["title"],
+                            description=data["description"],
+                            broken_code=data["broken_code"],
+                            language="python",
+                            difficulty=difficulty,
+                            test_cases=data.get("test_cases", []),
+                            bug_explanation=data.get("bug_explanation", ""),
+                            daily_challenge_date=today
+                        )
+                        db.add(new_challenge)
+                        db.commit()
+                        todays_challenges.append(new_challenge)
+                    except Exception as e:
+                        print(f"❌ Debug challenge generation failed for '{topic}' ({difficulty}): {e}")
+                        db.rollback()
+                        continue
+            finally:
+                try:
+                    redis_client.delete(lock_key)
+                except Exception:
+                    pass
+        else:
+            time.sleep(4)
+            todays_challenges = db.query(DebuggingChallenge).filter(
+                DebuggingChallenge.daily_challenge_date == today
+            ).all()
+
+    return todays_challenges[:TARGET_COUNT]

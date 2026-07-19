@@ -4,6 +4,8 @@ from app.models.problem import Problem
 from app.schemas.problem import ProblemCreate
 from app.models.submission import McqAttempt
 from datetime import date
+import time
+from app.core.redis_client import redis_client
 from app.services.streak_service import record_activity
 from app.services.ai.problem_generator_service import generate_problem
 
@@ -130,64 +132,72 @@ def submit_mcq_answer(db: Session, user_id: int, problem_id: int, selected_index
 
 def get_daily_mcqs(db: Session, user_id: int) -> list:
     today = date.today()
+    TARGET_COUNT = 10
 
     todays_mcqs = db.query(Problem).filter(
         Problem.daily_challenge_date == today,
         Problem.problem_type == "mcq"
     ).all()
 
-    TARGET_COUNT = 10
-
     if len(todays_mcqs) < TARGET_COUNT:
-        topics = [
-            "Arrays and their time complexity",
-            "Two Pointer Technique",
-            "Binary Search",
-            "Hash Maps and Hash Sets",
-            "Dynamic Programming Basics",
-            "Graph Traversal - BFS and DFS",
-            "Big-O Time Complexity Analysis",
-            "Recursion and the Call Stack",
-            "Sliding Window Technique",
-            "Operating Systems Basics",
-        ]
+        lock_key = f"daily_mcq_lock:{today}"
+        lock_acquired = False
+        try:
+            lock_acquired = redis_client.set(lock_key, "1", nx=True, ex=90)
+        except Exception:
+            lock_acquired = True  # if redis is down, proceed anyway (fail open)
 
-        idx = len(todays_mcqs)
-        if idx < len(topics):
-            topic = topics[idx]
+        if lock_acquired:
+            topics = [
+                "Arrays and their time complexity",
+                "Two Pointer Technique",
+                "Binary Search",
+                "Hash Maps and Hash Sets",
+                "Dynamic Programming Basics",
+                "Graph Traversal - BFS and DFS",
+                "Big-O Time Complexity Analysis",
+                "Recursion and the Call Stack",
+                "Sliding Window Technique",
+                "Operating Systems Basics",
+            ]
             try:
-                ai_data = generate_problem(topic, "medium", "mcq")
+                for idx in range(len(todays_mcqs), TARGET_COUNT):
+                    topic = topics[idx]
+                    try:
+                        ai_data = generate_problem(topic, "medium", "mcq")
+                        new_problem = Problem(
+                            title=ai_data["title"],
+                            description=ai_data["description"],
+                            difficulty=ai_data["difficulty"],
+                            category=ai_data["category"],
+                            problem_type="mcq",
+                            company_style_tag=ai_data.get("company_style_tag"),
+                            mcq_options=ai_data.get("mcq_options"),
+                            mcq_correct_index=ai_data.get("mcq_correct_index"),
+                            mcq_explanation=ai_data.get("mcq_explanation"),
+                            daily_challenge_date=today
+                        )
+                        db.add(new_problem)
+                        db.commit()
+                        todays_mcqs.append(new_problem)
+                    except Exception as e:
+                        print(f"❌ Daily MCQ generation failed for '{topic}': {e}")
+                        db.rollback()
+                        continue
+            finally:
+                try:
+                    redis_client.delete(lock_key)
+                except Exception:
+                    pass
+        else:
+            # Another request is already generating today's set — wait briefly, then re-fetch
+            time.sleep(4)
+            todays_mcqs = db.query(Problem).filter(
+                Problem.daily_challenge_date == today,
+                Problem.problem_type == "mcq"
+            ).all()
 
-                # Re-check count right before inserting to reduce race window
-                current_count = db.query(Problem).filter(
-                    Problem.daily_challenge_date == today,
-                    Problem.problem_type == "mcq"
-                ).count()
-
-                if current_count < TARGET_COUNT:
-                    new_problem = Problem(
-                        title=ai_data["title"],
-                        description=ai_data["description"],
-                        difficulty=ai_data["difficulty"],
-                        category=ai_data["category"],
-                        problem_type="mcq",
-                        company_style_tag=ai_data.get("company_style_tag"),
-                        mcq_options=ai_data.get("mcq_options"),
-                        mcq_correct_index=ai_data.get("mcq_correct_index"),
-                        mcq_explanation=ai_data.get("mcq_explanation"),
-                        daily_challenge_date=today
-                    )
-                    db.add(new_problem)
-                    db.commit()
-                    todays_mcqs.append(new_problem)
-            except Exception as e:
-                print(f"❌ Daily MCQ generation failed: {e}")
-
-        # Re-fetch to get accurate, capped list
-        todays_mcqs = db.query(Problem).filter(
-            Problem.daily_challenge_date == today,
-            Problem.problem_type == "mcq"
-        ).limit(TARGET_COUNT).all()
+    todays_mcqs = todays_mcqs[:TARGET_COUNT]
 
     solved_ids = {
         a.problem_id for a in db.query(McqAttempt).filter(

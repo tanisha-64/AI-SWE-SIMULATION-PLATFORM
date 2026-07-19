@@ -93,7 +93,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-dark-bg relative overflow-x-hidden">
+    <div className="min-h-screen bg-dark-bg relative overflow-x-hidden force-dark">
       <JellyBlobs variant="subtle" />
 
       {/* Nav */}
