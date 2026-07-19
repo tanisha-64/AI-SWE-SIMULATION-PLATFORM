@@ -253,14 +253,21 @@ export default function ProblemWorkspace() {
                 <p className="text-gray-500 text-sm text-center py-8">Click "Trace" to see step-by-step execution.</p>
               )
             ) : displayResult ? (
-              <ResultsPanel
-                status={displayResult.status || (displayResult.success ? 'passed' : 'failed')}
-                passedCount={displayResult.passed_count ?? 0}
-                totalCount={displayResult.total_count ?? 0}
-                testResults={displayResult.results || displayResult.test_results || []}
-                aiReview={displayResult.ai_review}
-                waitingForReview={activeTab === 'review' && waitingForReview}
-              />
+              <>
+                {status !== 'passed' && status !== 'failed' && (
+                  <div className="text-xs text-gray-500 mb-2">
+                    Note: "Run" only checks sample test cases. Use "Submit" for full validation against all test cases.
+                  </div>
+                )}
+                <ResultsPanel
+                  status={displayResult.status || (displayResult.success ? 'passed' : 'failed')}
+                  passedCount={displayResult.passed_count ?? 0}
+                  totalCount={displayResult.total_count ?? 0}
+                  testResults={displayResult.results || displayResult.test_results || []}
+                  aiReview={displayResult.ai_review}
+                  waitingForReview={activeTab === 'review' && waitingForReview}
+                />
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <ListChecks className="w-8 h-8 mb-2" />
