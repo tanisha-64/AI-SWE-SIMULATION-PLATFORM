@@ -1,23 +1,25 @@
-import resend
+import requests
 from app.core.config import settings
 
-resend.api_key = settings.RESEND_API_KEY
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
 
-def _send_email(to_email: str, subject: str, html: str) -> bool:
-    """Sends an email via Resend, compatible with both old and new SDK versions."""
-    params = {
-        # Default onboarding email domain for testing
-        "from": "CodeMentor AI <onboarding@resend.dev>",
-        "to": to_email,  # 🌟 Yahan array [] hata kar direct string pass kar di hai, taki onboarding validation fail na ho
-        "subject": subject,
-        "html": html,
+def _send_email(to_email: str, to_name: str, subject: str, html: str) -> bool:
+    headers = {
+        "accept": "application/json",
+        "api-key": settings.BREVO_API_KEY,
+        "content-type": "application/json",
     }
+    payload = {
+        "sender": {"name": "CodeMentor AI", "email": "mitanisha74@gmail.com"},  # apni verified sender email
+        "to": [{"email": to_email, "name": to_name}],
+        "subject": subject,
+        "htmlContent": html,
+    }
+
     try:
-        if hasattr(resend, "Emails"):
-            resend.Emails.send(params)
-        else:
-            resend.emails.send(params)
+        response = requests.post(BREVO_API_URL, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
         return True
     except Exception as e:
         print(f"❌ EMAIL SEND FAILED: {type(e).__name__}: {e}")
@@ -36,7 +38,7 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> bool:
         <p style="color: #888; font-size: 13px;">If you didn't create this account, you can safely ignore this email.</p>
     </div>
     """
-    return _send_email(to_email, "Verify your email — CodeMentor AI", html)
+    return _send_email(to_email, full_name, "Verify your email — CodeMentor AI", html)
 
 
 def send_contact_confirmation_email(to_email: str, name: str, subject: str) -> bool:
@@ -47,4 +49,4 @@ def send_contact_confirmation_email(to_email: str, name: str, subject: str) -> b
         <p style="color: #888; font-size: 13px;">This is an automated confirmation.</p>
     </div>
     """
-    return _send_email(to_email, "We received your message — CodeMentor AI", html)
+    return _send_email(to_email, name, "We received your message — CodeMentor AI", html)
