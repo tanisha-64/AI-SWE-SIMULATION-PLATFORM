@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = ""
     HF_API_KEY: str = ""
     COHERE_API_KEY: str = ""
-    RESEND_API_KEY: str = ""
+    BREVO_API_KEY: str = ""
+    BREVO_SENDER_EMAIL: str = "mitanisha74@gmail.com"
     FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:

@@ -1,29 +1,23 @@
 import secrets
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status, BackgroundTasks
+from fastapi import HTTPException, status
 from jose import JWTError
 from app.models.user import User
 from app.schemas.user import UserRegister, UserLogin
 from app.core.security import (
     hash_password, verify_password, create_access_token,
-    create_refresh_token, decode_access_token
+    create_refresh_token, decode_token
 )
 from app.services.email_service import send_verification_email
 
 
-def register_user(db: Session, user_data: UserRegister, background_tasks: BackgroundTasks) -> dict:
-    # 1. Check if user already exists
+def register_user(db: Session, user_data: UserRegister) -> dict:
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Email already registered"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
-    # 2. Generate secure token
     verification_token = secrets.token_urlsafe(32)
 
-    # 3. Create new user
     new_user = User(
         email=user_data.email,
         password_hash=hash_password(user_data.password),
@@ -35,17 +29,13 @@ def register_user(db: Session, user_data: UserRegister, background_tasks: Backgr
     db.commit()
     db.refresh(new_user)
 
-    # 4. SEND EMAIL IN BACKGROUND (Non-blocking)
-    background_tasks.add_task(
-        send_verification_email,
-        new_user.email,
-        new_user.full_name,
-        verification_token
-    )
+    email_sent = send_verification_email(new_user.email, new_user.full_name, verification_token)
 
-    # 5. Turant frontend ko success response bhejein
     return {
-        "message": "Registration successful! Please check your email to verify your account.",
+        "message": "Registration successful! Please check your email to verify your account."
+        if email_sent else
+        "Account created, but the verification email could not be sent. Please use 'Resend verification email' shortly.",
+        "email_sent": email_sent,
         "user_id": new_user.id
     }
 
@@ -53,10 +43,7 @@ def register_user(db: Session, user_data: UserRegister, background_tasks: Backgr
 def verify_email(db: Session, token: str) -> dict:
     user = db.query(User).filter(User.verification_token == token).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Invalid or expired verification link"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired verification link")
 
     user.is_verified = True
     user.verification_token = None
@@ -65,66 +52,43 @@ def verify_email(db: Session, token: str) -> dict:
     return {"message": "Email verified successfully! You can now log in."}
 
 
-def resend_verification_email(db: Session, email: str, background_tasks: BackgroundTasks) -> dict:
+def resend_verification_email(db: Session, email: str) -> dict:
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    
+        raise HTTPException(status_code=404, detail="User not found")
     if user.is_verified:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already verified")
+        raise HTTPException(status_code=400, detail="Email already verified")
 
-    # Naya token generate karein
     new_token = secrets.token_urlsafe(32)
     user.verification_token = new_token
     db.commit()
 
-    # Email resend bhi background me hoga
-    background_tasks.add_task(
-        send_verification_email,
-        user.email,
-        user.full_name,
-        new_token
-    )
-    
-    return {"message": "Verification email resent! Please check your inbox."}
+    email_sent = send_verification_email(user.email, user.full_name, new_token)
+    if not email_sent:
+        raise HTTPException(status_code=502, detail="Could not send email right now. Please try again in a moment.")
+
+    return {"message": "Verification email resent."}
 
 
 def login_user(db: Session, login_data: UserLogin) -> dict:
     user = db.query(User).filter(User.email == login_data.email).first()
-    
-    # Security best practice: Same error message for invalid email or password
     if not user or not verify_password(login_data.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Invalid email or password"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
     if not user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="Please verify your email before logging in. Check your inbox."
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email before logging in. Check your inbox.")
 
     access_token = create_access_token(user.id)
     refresh_token = create_refresh_token(user.id)
-    
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 
 def refresh_access_token(refresh_token: str) -> str:
     try:
-        payload = decode_access_token(refresh_token)
+        payload = decode_token(refresh_token)
         if payload.get("type") != "refresh":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="Invalid token type"
-            )
-        
+            raise HTTPException(status_code=401, detail="Invalid token type")
         user_id = int(payload.get("sub"))
         return create_access_token(user_id)
-        
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Invalid or expired refresh token"
-        )
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")

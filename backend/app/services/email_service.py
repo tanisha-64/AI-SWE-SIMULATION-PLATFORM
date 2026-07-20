@@ -5,24 +5,31 @@ BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
 
 def _send_email(to_email: str, to_name: str, subject: str, html: str) -> bool:
+    """Sends an email via Brevo's REST API. Never raises — always returns True/False."""
+    if not settings.BREVO_API_KEY:
+        print("❌ EMAIL SEND SKIPPED: BREVO_API_KEY is not configured")
+        return False
+
     headers = {
         "accept": "application/json",
         "api-key": settings.BREVO_API_KEY,
         "content-type": "application/json",
     }
     payload = {
-        "sender": {"name": "CodeMentor AI", "email": "mitanisha74@gmail.com"},  # apni verified sender email
-        "to": [{"email": to_email, "name": to_name}],
+        "sender": {"name": "CodeMentor AI", "email": settings.BREVO_SENDER_EMAIL},
+        "to": [{"email": to_email, "name": to_name or to_email}],
         "subject": subject,
         "htmlContent": html,
     }
 
     try:
-        response = requests.post(BREVO_API_URL, json=payload, headers=headers, timeout=10)
-        response.raise_for_status()
+        response = requests.post(BREVO_API_URL, json=payload, headers=headers, timeout=15)
+        if response.status_code >= 400:
+            print(f"❌ EMAIL SEND FAILED: {response.status_code} - {response.text}")
+            return False
         return True
     except Exception as e:
-        print(f"❌ EMAIL SEND FAILED: {type(e).__name__}: {e}")
+        print(f"❌ EMAIL SEND EXCEPTION: {type(e).__name__}: {e}")
         return False
 
 
