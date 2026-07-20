@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import apiClient from '../api/client';
 import toast from 'react-hot-toast';
 
@@ -7,6 +8,7 @@ interface User {
   email: string;
   full_name: string;
   is_active: boolean;
+  is_verified: boolean;
 }
 
 interface AuthContextType {
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.data);
     } catch (error) {
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     } finally {
       setLoading(false);
     }
@@ -53,8 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string, fullName: string) => {
     await apiClient.post('/auth/register', { email, password, full_name: fullName });
-    await login(email, password);
-    toast.success('Account created! Let\'s get started 🚀');
   };
 
   const logout = () => {

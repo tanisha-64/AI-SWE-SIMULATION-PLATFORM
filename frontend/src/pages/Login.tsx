@@ -18,13 +18,18 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email.trim().toLowerCase(), password);
       navigate('/dashboard');
     } catch (err: any) {
+      console.error('Login error:', err.response?.data);
       if (err.response?.status === 403) {
-        setError('Please verify your email before logging in. Check your inbox for the verification link.');
+        setError('Please verify your email before logging in. Check your inbox (and spam folder).');
+      } else if (err.response?.status === 401) {
+        setError('Invalid email or password.');
+      } else if (err.response?.status === 429) {
+        setError('Too many login attempts. Please wait a few minutes and try again.');
       } else {
-        setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+        setError(err.response?.data?.detail || 'Login failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -34,7 +39,6 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-bg relative overflow-hidden">
       <JellyBlobs />
-
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -64,6 +68,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="w-full px-4 py-2.5 bg-dark-bg border border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 placeholder="you@example.com"
               />
@@ -76,17 +81,14 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="w-full px-4 py-2.5 bg-dark-bg border border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-red-400 text-sm"
-              >
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
                 {error}
               </motion.p>
             )}
