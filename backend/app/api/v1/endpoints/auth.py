@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, BackgroundTasks  # type: ignore
+from sqlalchemy.orm import Session  # type: ignore[import]
 from app.db.session import get_db
 from app.schemas.user import (
     UserRegister, UserLogin, Token, RegisterResponse,
@@ -12,10 +12,14 @@ from app.utils.rate_limiter import rate_limit_by_ip
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-
 @router.post("/register", response_model=RegisterResponse)
-def register(user_data: UserRegister, db: Session = Depends(get_db)):
-    return register_user(db, user_data)
+def register(
+    user_data: UserRegister, 
+    background_tasks: BackgroundTasks,  # <-- Yahan add kiya
+    db: Session = Depends(get_db)
+):
+    # background_tasks ko service layer me pass kar diya
+    return register_user(db, user_data, background_tasks)
 
 
 @router.post("/login", response_model=Token)
@@ -39,5 +43,9 @@ def verify(request: VerifyEmailRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/resend-verification", response_model=MessageResponse)
-def resend_verification(request: ResendVerificationRequest, db: Session = Depends(get_db)):
-    return resend_verification_email(db, request.email)
+def resend_verification(
+    request: ResendVerificationRequest, 
+    background_tasks: BackgroundTasks,  # <-- Yahan bhi add kiya (taki resend bhi fast ho)
+    db: Session = Depends(get_db)
+):
+    return resend_verification_email(db, request.email, background_tasks)
