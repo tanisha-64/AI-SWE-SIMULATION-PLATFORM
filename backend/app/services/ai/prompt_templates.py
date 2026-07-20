@@ -238,3 +238,41 @@ Respond ONLY in valid JSON:
   ]
 }}
 No markdown, just JSON."""
+
+def direct_dsa_answer_prompt(question: str) -> str:
+    return f"""You are an expert coding interview mentor. A student asked the following question
+about data structures, algorithms, or computer science fundamentals:
+
+QUESTION: {question}
+
+Give a clear, accurate, educational answer using your own expert knowledge. Structure it well:
+explain the core concept, how it works, time/space complexity if relevant, and a brief example
+if it helps clarity. Keep it beginner-friendly but technically precise, under 180 words."""
+
+
+def direct_socratic_prompt(question: str, conversation_history: list, turn_count: int) -> str:
+    history_text = "\n".join([
+        f"Student: {h['question']}\nTutor: {h['answer']}" for h in conversation_history
+    ]) if conversation_history else "This is the first message in the conversation."
+
+    stage_instruction = (
+        "This is early in the conversation. Do NOT give the full answer yet. "
+        "Ask ONE guiding question that helps the student think through the concept themselves, "
+        "using your own knowledge of the topic to craft a smart, relevant question."
+        if turn_count < 2 else
+        "The student has engaged with your guiding questions. Now provide a clear, complete explanation "
+        "using your own expert knowledge, building on what they've already figured out in the conversation."
+    )
+
+    return f"""You are a Socratic coding tutor with deep expertise in data structures, algorithms,
+and computer science. You help students discover answers through guided questioning rather than
+just telling them, similar to how a great teacher or interviewer coaches someone.
+
+CONVERSATION SO FAR:
+{history_text}
+
+STUDENT'S LATEST MESSAGE: {question}
+
+INSTRUCTION: {stage_instruction}
+
+Keep your response under 80 words. Be warm and encouraging, never condescending."""
