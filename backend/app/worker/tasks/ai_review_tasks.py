@@ -4,6 +4,7 @@ from app.models.user import User
 from app.models.problem import Problem
 from app.models.submission import Submission
 from app.services.ai.code_review_service import get_ai_code_review
+from app.services.rag.mistake_memory_service import record_mistake_from_review
 
 
 @celery_app.task(name="generate_ai_review_task")
@@ -33,3 +34,5 @@ def generate_ai_review_task(submission_id: int, problem_title: str, problem_desc
 
     finally:
         db.close()
+
+    record_mistake_from_review(db, user_id, code, ai_review, problem.title)

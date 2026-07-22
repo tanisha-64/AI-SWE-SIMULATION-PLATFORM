@@ -276,3 +276,43 @@ STUDENT'S LATEST MESSAGE: {question}
 INSTRUCTION: {stage_instruction}
 
 Keep your response under 80 words. Be warm and encouraging, never condescending."""
+
+
+def extract_mistake_prompt(code: str, ai_review: dict, problem_title: str) -> str:
+    bugs = ai_review.get("bugs_found", "")
+    return f"""Analyze this code review feedback and extract the CORE conceptual mistake in one short tag and summary.
+
+PROBLEM: {problem_title}
+BUGS/ISSUES FOUND: {bugs}
+
+Respond ONLY in valid JSON:
+{{
+  "concept_tag": "string (2-4 words, e.g. 'off-by-one error', 'missing base case', 'wrong loop bound')",
+  "summary": "string (one sentence describing what went wrong)"
+}}
+If there are no real conceptual mistakes (clean code), respond with {{"concept_tag": "none", "summary": "none"}}.
+No markdown, just JSON."""
+
+
+def personal_memory_rag_prompt(question: str, general_contexts: list, personal_mistakes: list) -> str:
+    general_text = "\n\n".join([f"[{c['topic']}]: {c['text']}" for c in general_contexts]) or "No general reference found."
+
+    personal_text = "\n".join([
+        f"- In '{m['problem_title']}', you had a '{m['concept_tag']}' issue: {m['summary']}"
+        for m in personal_mistakes
+    ]) if personal_mistakes else "No relevant personal history found for this topic."
+
+    return f"""You are a personalized coding mentor who remembers this specific student's past mistakes.
+
+GENERAL KNOWLEDGE BASE:
+{general_text}
+
+THIS STUDENT'S RELEVANT PAST MISTAKES:
+{personal_text}
+
+STUDENT'S QUESTION: {question}
+
+Answer the question using the general knowledge. If any of the student's past mistakes are
+genuinely relevant to this question, naturally reference them (e.g. "This connects to something
+you struggled with before...") to reinforce learning — but only if truly relevant, don't force it.
+Keep it under 160 words, encouraging tone."""

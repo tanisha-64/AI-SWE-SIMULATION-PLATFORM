@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
 from app.db.session import get_db
 from app.schemas.rag import ChatQuery, ChatResponse, BulkGenerateRequest
 from app.services.rag.rag_chain import ask_mentor
@@ -20,7 +20,7 @@ def ask_question(
     db: Session = Depends(get_db),
     current_user: User = Depends(rate_limit(max_requests=15, window_seconds=60))
 ):
-    result = ask_mentor(query.question)
+    result = ask_mentor(db, current_user.id, query.question)
 
     chat_log = ChatMessage(
         user_id=current_user.id,

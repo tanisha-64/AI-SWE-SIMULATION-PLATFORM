@@ -1,12 +1,12 @@
-from fastapi import BackgroundTasks
+from fastapi import BackgroundTasks, HTTPException, status
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
 from app.models.submission import Submission
 from app.models.problem import Problem
 from app.services.code_execution_service import code_executor
 from app.services.analytics_service import recalculate_user_analytics
 from app.services.streak_service import record_activity
 from app.services.ai.code_review_service import get_ai_code_review
+from app.services.rag.mistake_memory_service import record_mistake_from_review
 from app.schemas.submission import CodeRunRequest
 from app.core.database import SessionLocal
 
@@ -26,10 +26,11 @@ def run_code_sample(db: Session, user_id: int, request: CodeRunRequest) -> dict:
     return execution_result
 
 
-def _generate_ai_review_background(submission_id: int, problem_title: str, problem_description: str, code: str, language: str):
+def _generate_ai_review_background(submission_id: int, user_id: int, problem_title: str, problem_description: str, code: str, language: str):
     """
-    Runs in the background after the response is already sent to the user.
-    Opens its own DB session since the original request's session is closed by then.
+    Runs after the response is already sent. Opens its own DB session since the
+    original request's session is closed by then. Also extracts and stores any
+    conceptual mistake into the student's personal memory for future RAG use.
     """
     db = SessionLocal()
     try:
@@ -43,6 +44,11 @@ def _generate_ai_review_background(submission_id: int, problem_title: str, probl
         if submission:
             submission.ai_review = ai_review
             db.commit()
+
+        record_mistake_from_review(db, user_id, code, ai_review, problem_title)
+
+    except Exception as e:
+        print(f"❌ Background AI review failed for submission {submission_id}: {e}")
     finally:
         db.close()
 
@@ -88,6 +94,7 @@ def submit_code(db: Session, user_id: int, request: CodeRunRequest, background_t
     background_tasks.add_task(
         _generate_ai_review_background,
         new_submission.id,
+        user_id,
         problem.title,
         problem.description,
         request.code,
