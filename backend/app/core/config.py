@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
     DATABASE_URL: str
@@ -14,8 +15,13 @@ class Settings(BaseSettings):
     BREVO_API_KEY: str = ""
     BREVO_SENDER_EMAIL: str = "mitanisha74@gmail.com"
     FRONTEND_URL: str = "http://localhost:5173"
+    
+    # 1. Resend API Key add karein
+    RESEND_API_KEY: Optional[str] = None
 
     class Config:
         env_file = ".env"
+        # 2. Extra fields allow/ignore karne ke liye
+        extra = "ignore"
 
 settings = Settings()

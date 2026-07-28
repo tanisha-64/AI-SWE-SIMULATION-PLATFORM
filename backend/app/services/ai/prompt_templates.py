@@ -316,3 +316,26 @@ Answer the question using the general knowledge. If any of the student's past mi
 genuinely relevant to this question, naturally reference them (e.g. "This connects to something
 you struggled with before...") to reinforce learning — but only if truly relevant, don't force it.
 Keep it under 160 words, encouraging tone."""
+
+
+def resume_content_prompt(analytics: dict, badges: list, education: list) -> str:
+    return f"""You are a professional resume writer specializing in tech/CS resumes for campus placements.
+
+STUDENT'S PLATFORM PERFORMANCE DATA:
+- Problems solved: {analytics.get('total_problems_solved', 0)}
+- Accuracy: {analytics.get('accuracy_percentage', 0)}%
+- Industry Readiness Score: {analytics.get('industry_readiness_score', 0)}/100
+- Strengths: {', '.join(analytics.get('strengths', [])) or 'Building foundational skills'}
+- Debugging challenges solved: {analytics.get('debugging_challenges_solved', 0)}
+- Average AI code quality score: {analytics.get('avg_code_quality_score', 0)}/10
+- Badges earned: {', '.join([b['name'] for b in badges]) if badges else 'None yet'}
+
+EDUCATION: {education}
+
+Generate professional, resume-ready content. Respond ONLY in valid JSON:
+{{
+  "summary": "string (2-3 sentence professional summary, first person implied, no 'I')",
+  "skills": ["skill1", "skill2", ... 6-10 technical skills inferred from the data],
+  "achievements": ["achievement1 (quantified, action-verb-led bullet point)", "achievement2", ... 3-5 bullets]
+}}
+Use strong action verbs (Engineered, Solved, Achieved, Optimized). Be honest and grounded in the actual data — do not invent numbers not present above. No markdown, just JSON."""

@@ -19,6 +19,8 @@ import CareerTrackDetail from './pages/CareerTrackDetail';
 import DailyChallenge from './pages/DailyChallenge';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
+import Pricing from './pages/Pricing';
+import ResumeBuilder from './pages/ResumeBuilder';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
           <Route path="/career-tracks/:id" element={<ProtectedRoute><CareerTrackDetail /></ProtectedRoute>} />
           <Route path="/daily-challenge" element={<ProtectedRoute><DailyChallenge /></ProtectedRoute>} />
           <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/resume" element={<ResumeBuilder />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

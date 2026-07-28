@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
+import apiClient from '../api/client';
 import JellyBlobs from '../components/ui/JellyBlobs';
 import AnimatedCounter from '../components/ui/AnimatedCounter';
 import {
@@ -44,8 +45,19 @@ export default function Landing() {
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
-  const [wordIndex, setWordIndex] = useState(0);
 
+  const [wordIndex, setWordIndex] = useState(0);
+  const [stories, setStories] = useState<any[]>([]);
+
+  // 1. Fetch Success Stories from Backend API
+  useEffect(() => {
+    apiClient
+      .get('/success-stories/')
+      .then((res) => setStories(res.data))
+      .catch(() => {});
+  }, []);
+
+  // 2. GSAP Animations
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
@@ -85,6 +97,7 @@ export default function Landing() {
     }
   }, []);
 
+  // 3. Rotating Text Timer
   useEffect(() => {
     const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
@@ -142,8 +155,8 @@ export default function Landing() {
             >
               {ROTATING_WORDS[wordIndex]}
             </motion.span>
-          </AnimatePresence>
-          {' '}at a real company.
+          </AnimatePresence>{' '}
+          at a real company.
         </h1>
 
         <p ref={subtitleRef} className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
@@ -204,6 +217,26 @@ export default function Landing() {
           ))}
         </div>
       </div>
+
+      {/* Success Stories Section */}
+      {stories.length > 0 && (
+        <div className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
+          <h2 className="font-display text-2xl font-bold text-center mb-8">Success Stories</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {stories.slice(0, 3).map((s: any, idx: number) => (
+              <div key={s.id || idx} className="glass-card p-5 rounded-xl border border-dark-border">
+                <p className="text-sm text-gray-300 italic mb-3">"{s.quote || s.content}"</p>
+                {s.company_name && (
+                  <p className="text-xs text-gray-400 mb-1">
+                    {s.role ? `${s.role} @ ` : ''}{s.company_name}
+                  </p>
+                )}
+                <p className="text-xs font-semibold gradient-text">{s.author || s.name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Footer with credit */}
       <footer className="relative z-10 border-t border-dark-border">

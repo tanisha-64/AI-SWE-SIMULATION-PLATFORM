@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { Crown, FileText /* , baaki icons... */ } from 'lucide-react';
 import UserMenu from './UserMenu';
 import {
   Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
@@ -25,6 +26,8 @@ export default function Navbar() {
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
     { path: '/contact', label: 'Help', icon: HelpCircle },
+    { path: '/pricing', label: 'Pricing', icon: Crown },
+    { path: '/resume', label: 'Resume', icon: FileText },
   ];
 
   return (
