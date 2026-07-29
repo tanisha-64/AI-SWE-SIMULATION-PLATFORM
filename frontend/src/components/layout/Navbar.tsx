@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
 import UserMenu from './UserMenu';
 import {
   Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
