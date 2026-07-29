@@ -6,6 +6,7 @@ import UserMenu from './UserMenu';
 import {
   Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
   MessageSquareText, Menu, X, TrendingUp, Flame, HelpCircle,
+  Crown, FileText,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -20,6 +21,8 @@ export default function Navbar() {
     { path: '/daily-challenge', label: 'Daily', icon: Flame },
     { path: '/career-tracks', label: 'Careers', icon: TrendingUp },
     { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
+    { path: '/resume', label: 'Resume', icon: FileText },
+    { path: '/pricing', label: 'Pricing', icon: Crown },
     { path: '/contact', label: 'Help', icon: HelpCircle },
   ];
 
@@ -33,12 +36,19 @@ export default function Navbar() {
           <span className="hidden sm:inline">CodeMentor AI</span>
         </Link>
 
-        <div className="hidden lg:flex items-center gap-0.5 overflow-x-auto no-scrollbar">
+        {/* Desktop Navigation Links */}
+        <div className="hidden lg:flex items-center gap-1 overflow-x-auto no-scrollbar">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
+            const Icon = item.icon;
             return (
-              <Link key={item.path} to={item.path} className="relative px-3 py-2 text-sm font-medium whitespace-nowrap">
-                <span className={isActive ? 'text-primary' : 'text-gray-400 hover:text-white transition-colors'}>
+              <Link 
+                key={item.path} 
+                to={item.path} 
+                className="relative px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1.5"
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-gray-400'}`} />
+                <span className={isActive ? 'text-primary font-semibold' : 'text-gray-400 hover:text-white transition-colors'}>
                   {item.label}
                 </span>
                 {isActive && (
@@ -52,13 +62,14 @@ export default function Navbar() {
           })}
         </div>
 
+        {/* Right Action Icons */}
         <div className="flex items-center gap-2 shrink-0">
           <motion.button
             whileTap={{ scale: 0.9, rotate: 180 }}
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-dark-border transition-colors"
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
           </motion.button>
 
           <div className="hidden lg:block">
@@ -74,6 +85,7 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -86,6 +98,7 @@ export default function Navbar() {
             <div className="px-4 py-2 space-y-1 max-h-[70vh] overflow-y-auto">
               {navItems.map((item) => {
                 const isActive = location.pathname.startsWith(item.path);
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.path}
@@ -95,7 +108,7 @@ export default function Navbar() {
                       isActive ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-dark-border hover:text-white'
                     }`}
                   >
-                    <item.icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4" />
                     {item.label}
                   </Link>
                 );
