@@ -109,7 +109,9 @@ export default function DailyChallenge() {
           </motion.div>
           <h1 className="font-display text-2xl font-bold mb-2">All done for today!</h1>
           <p className="text-gray-400 mb-1">
-            You solved {solvedCount} question{solvedCount !== 1 ? 's' : ''} today.
+            {solvedCount > 0
+              ? `You solved ${solvedCount} question${solvedCount !== 1 ? 's' : ''} today!`
+              : "You've completed all of today's questions!"}
           </p>
           <p className="text-gray-500 text-sm">Come back tomorrow for 10 fresh AI-generated questions.</p>
         </div>
@@ -183,28 +185,25 @@ export default function DailyChallenge() {
                         type="button"
                         onClick={() => handleSelectOption(idx)}
                         disabled={!!result}
-                        className={`relative z-10 w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 ${
-                          result ? 'cursor-default' : 'cursor-pointer'
-                        } ${
-                          isCorrectAnswer
+                        className={`relative z-10 w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-3 ${result ? 'cursor-default' : 'cursor-pointer'
+                          } ${isCorrectAnswer
                             ? 'bg-green-500/15 border-green-500'
                             : isWrongSelected
-                            ? 'bg-red-500/15 border-red-500'
-                            : isSelected
-                            ? 'bg-primary/15 border-primary'
-                            : 'bg-dark-bg border-dark-border hover:border-primary/40 hover:bg-dark-border/30'
-                        }`}
+                              ? 'bg-red-500/15 border-red-500'
+                              : isSelected
+                                ? 'bg-primary/15 border-primary'
+                                : 'bg-dark-bg border-dark-border hover:border-primary/40 hover:bg-dark-border/30'
+                          }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 text-sm font-bold transition-colors ${
-                            isCorrectAnswer
+                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 text-sm font-bold transition-colors ${isCorrectAnswer
                               ? 'border-green-400 bg-green-400 text-dark-bg'
                               : isWrongSelected
-                              ? 'border-red-400 bg-red-400 text-dark-bg'
-                              : isSelected
-                              ? 'border-primary bg-primary text-white'
-                              : 'border-gray-600 text-gray-400'
-                          }`}
+                                ? 'border-red-400 bg-red-400 text-dark-bg'
+                                : isSelected
+                                  ? 'border-primary bg-primary text-white'
+                                  : 'border-gray-600 text-gray-400'
+                            }`}
                         >
                           {String.fromCharCode(65 + idx)}
                         </div>
@@ -222,11 +221,10 @@ export default function DailyChallenge() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       transition={{ duration: 0.3 }}
-                      className={`mb-6 rounded-xl p-4 border ${
-                        result.is_correct
+                      className={`mb-6 rounded-xl p-4 border ${result.is_correct
                           ? 'bg-green-500/5 border-green-500/20'
                           : 'bg-amber-500/5 border-amber-500/20'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         {result.is_correct ? (

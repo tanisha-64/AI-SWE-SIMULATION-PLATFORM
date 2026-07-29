@@ -137,3 +137,6 @@ h1, h2, h3, .font-display {
 .force-dark .text-gray-500 {
   color: #9ca3af !important;
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

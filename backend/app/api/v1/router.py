@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
     auth, users, problems, execution, submissions, debugging,
-    analytics, admin, rag_chat, agents, career_tracks, contact
+    analytics, admin, rag_chat, agents, career_tracks, contact,
+    pricing, resume, success_stories
 )
 
 api_router = APIRouter()
@@ -17,3 +18,6 @@ api_router.include_router(rag_chat.router)
 api_router.include_router(agents.router)
 api_router.include_router(career_tracks.router)
 api_router.include_router(contact.router)
+api_router.include_router(pricing.router)
+api_router.include_router(resume.router)
+api_router.include_router(success_stories.router)

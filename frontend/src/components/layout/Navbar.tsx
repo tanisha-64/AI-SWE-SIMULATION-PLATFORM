@@ -3,17 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
-import { Crown, FileText /* , baaki icons... */ } from 'lucide-react';
 import UserMenu from './UserMenu';
 import {
   Sun, Moon, Code2, LayoutDashboard, ListChecks, Bug,
-  MessageSquareText, LogOut, Menu, X, BarChart3, TrendingUp,
-  Flame, HelpCircle,
+  MessageSquareText, Menu, X, TrendingUp, Flame, HelpCircle,
 } from 'lucide-react';
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
-  const { logout } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -21,18 +18,15 @@ export default function Navbar() {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/problems', label: 'Problems', icon: ListChecks },
     { path: '/debug-arena', label: 'Debug Arena', icon: Bug },
-    { path: '/daily-challenge', label: 'Daily Challenge', icon: Flame },
-    { path: '/career-tracks', label: 'Career Tracks', icon: TrendingUp },
-    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/daily-challenge', label: 'Daily', icon: Flame },
+    { path: '/career-tracks', label: 'Careers', icon: TrendingUp },
     { path: '/mentor', label: 'Mentor', icon: MessageSquareText },
     { path: '/contact', label: 'Help', icon: HelpCircle },
-    { path: '/pricing', label: 'Pricing', icon: Crown },
-    { path: '/resume', label: 'Resume', icon: FileText },
   ];
 
   return (
     <nav className="sticky top-0 z-50 bg-dark-card/80 backdrop-blur-lg border-b border-dark-border">
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-2">
         <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg shrink-0">
           <div className="bg-primary/20 p-1.5 rounded-lg">
             <Code2 className="w-5 h-5 text-primary" />
@@ -40,7 +34,7 @@ export default function Navbar() {
           <span className="hidden sm:inline">CodeMentor AI</span>
         </Link>
 
-        <div className="hidden lg:flex items-center gap-1 overflow-x-auto">
+        <div className="hidden lg:flex items-center gap-0.5 overflow-x-auto no-scrollbar">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
@@ -59,7 +53,7 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <motion.button
             whileTap={{ scale: 0.9, rotate: 180 }}
             onClick={toggleTheme}
@@ -115,16 +109,6 @@ export default function Navbar() {
                 <Code2 className="w-4 h-4" />
                 My Profile
               </Link>
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  logout();
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-dark-border hover:text-red-400 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </button>
             </div>
           </motion.div>
         )}

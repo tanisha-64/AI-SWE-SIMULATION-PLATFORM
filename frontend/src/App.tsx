@@ -11,7 +11,6 @@ import ProblemWorkspace from './pages/ProblemWorkspace';
 import McqWorkspace from './pages/McqWorkspace';
 import DebugArena from './pages/DebugArena';
 import DebugChallenge from './pages/DebugChallenge';
-import Analytics from './pages/Analytics';
 import Mentor from './pages/Mentor';
 import Profile from './pages/Profile';
 import CareerTracks from './pages/CareerTracks';
@@ -39,9 +38,7 @@ function App() {
           <Route path="/problems/:id" element={<ProtectedRoute><ProblemWorkspace /></ProtectedRoute>} />
           <Route path="/mcq/:id" element={<ProtectedRoute><McqWorkspace /></ProtectedRoute>} />
           <Route path="/debug-arena" element={<ProtectedRoute><DebugArena /></ProtectedRoute>} />
-          <Route path="/debug-arena/:id" element={<ProtectedRoute><DebugChallenge /></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-          <Route path="/mentor" element={<ProtectedRoute><Mentor /></ProtectedRoute>} />
+          <Route path="/debug-arena/:id" element={<ProtectedRoute><DebugChallenge /></ProtectedRoute>} />          <Route path="/mentor" element={<ProtectedRoute><Mentor /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/career-tracks" element={<ProtectedRoute><CareerTracks /></ProtectedRoute>} />
           <Route path="/career-tracks/:id" element={<ProtectedRoute><CareerTrackDetail /></ProtectedRoute>} />
