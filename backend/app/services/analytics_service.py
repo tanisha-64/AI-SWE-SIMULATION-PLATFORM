@@ -1,27 +1,38 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from collections import defaultdict
-from app.models.submission import Submission
+from app.models.submission import Submission, McqAttempt
 from app.models.debugging_challenge import DebuggingAttempt
-from app.services.badge_service import check_and_award_badges
 from app.models.analytics import UserAnalytics
 from app.models.problem import Problem
 
 
 def _calculate_category_breakdown(db: Session, user_id: int) -> dict:
-    """Groups submissions by problem category and calculates per-category accuracy."""
-    submissions = (
+    """Combines coding submissions AND MCQ attempts into one category breakdown."""
+    category_stats = defaultdict(lambda: {"total": 0, "passed": 0})
+
+    # Coding submissions
+    coding_rows = (
         db.query(Submission, Problem)
         .join(Problem, Submission.problem_id == Problem.id)
         .filter(Submission.user_id == user_id)
         .all()
     )
-
-    category_stats = defaultdict(lambda: {"total": 0, "passed": 0})
-
-    for submission, problem in submissions:
+    for submission, problem in coding_rows:
         category_stats[problem.category]["total"] += 1
         if submission.status == "passed":
+            category_stats[problem.category]["passed"] += 1
+
+    # MCQ attempts
+    mcq_rows = (
+        db.query(McqAttempt, Problem)
+        .join(Problem, McqAttempt.problem_id == Problem.id)
+        .filter(McqAttempt.user_id == user_id)
+        .all()
+    )
+    for attempt, problem in mcq_rows:
+        category_stats[problem.category]["total"] += 1
+        if attempt.is_correct == "True" or attempt.is_correct is True:
             category_stats[problem.category]["passed"] += 1
 
     breakdown = {}
@@ -31,89 +42,69 @@ def _calculate_category_breakdown(db: Session, user_id: int) -> dict:
             "solved": stats["passed"],
             "accuracy": round(accuracy, 1)
         }
-
     return breakdown
 
 
 def _identify_strengths_weaknesses(category_breakdown: dict) -> tuple:
-    """Categories with accuracy >= 75% are strengths, < 50% are weaknesses."""
     strengths = []
     weaknesses = []
-
     for category, stats in category_breakdown.items():
         if stats["accuracy"] >= 75:
             strengths.append(category)
         elif stats["accuracy"] < 50:
             weaknesses.append(category)
-
     return strengths, weaknesses
 
 
 def _calculate_consistency_score(db: Session, user_id: int) -> float:
-    """
-    Measures how regularly the user practices over the last 30 days.
-    More active days = higher consistency score (0-100).
-    """
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-
     submissions = (
         db.query(Submission)
         .filter(Submission.user_id == user_id, Submission.created_at >= thirty_days_ago)
         .all()
     )
-
-    if not submissions:
-        return 0.0
+    mcq_attempts = (
+        db.query(McqAttempt)
+        .filter(McqAttempt.user_id == user_id, McqAttempt.created_at >= thirty_days_ago)
+        .all()
+    )
 
     active_days = set()
     for s in submissions:
         active_days.add(s.created_at.date())
+    for m in mcq_attempts:
+        active_days.add(m.created_at.date())
+
+    if not active_days:
+        return 0.0
 
     consistency = (len(active_days) / 30) * 100
     return round(min(consistency, 100.0), 1)
 
 
 def _calculate_avg_code_quality(db: Session, user_id: int) -> float:
-    """Averages the AI-given code_quality_score across all submissions that have one."""
     submissions = (
         db.query(Submission)
         .filter(Submission.user_id == user_id, Submission.ai_review.isnot(None))
         .all()
     )
-
     scores = []
     for s in submissions:
         score = s.ai_review.get("code_quality_score") if s.ai_review else None
         if score is not None:
             scores.append(score)
-
     if not scores:
         return 0.0
-
     return round(sum(scores) / len(scores), 1)
 
 
 def _calculate_readiness_score(
-    accuracy: float,
-    total_solved: int,
-    consistency: float,
-    avg_code_quality: float,
-    debugging_solved: int
+    accuracy: float, total_solved: int, consistency: float,
+    avg_code_quality: float, debugging_solved: int
 ) -> float:
-    """
-    Composite Industry Readiness Score (0-100).
-
-    This is a rule-based formula acting as the 'cold-start' model.
-    Weights are chosen based on what typically matters for interview readiness:
-    - Accuracy (correctness): 30%
-    - Volume/practice (solved count, capped): 25%
-    - Consistency (regularity): 20%
-    - Code quality (from AI reviews, scaled to 100): 15%
-    - Debugging skill: 10%
-    """
-    volume_score = min(total_solved / 50 * 100, 100)  # 50+ problems = full marks
+    volume_score = min(total_solved / 50 * 100, 100)
     quality_score = (avg_code_quality / 10) * 100 if avg_code_quality > 0 else 0
-    debugging_score = min(debugging_solved / 10 * 100, 100)  # 10+ debug challenges = full marks
+    debugging_score = min(debugging_solved / 10 * 100, 100)
 
     readiness = (
         accuracy * 0.30 +
@@ -122,33 +113,45 @@ def _calculate_readiness_score(
         quality_score * 0.15 +
         debugging_score * 0.10
     )
-
     return round(min(readiness, 100.0), 1)
 
 
 def recalculate_user_analytics(db: Session, user_id: int) -> UserAnalytics:
-    """
-    Main function: recalculates everything and saves/updates the UserAnalytics row.
-    Call this after every submission or debugging attempt.
-    """
-    total_submissions = db.query(Submission).filter(Submission.user_id == user_id).count()
-    passed_submissions = db.query(Submission).filter(
+    # Coding submissions
+    total_coding_submissions = db.query(Submission).filter(Submission.user_id == user_id).count()
+    passed_coding_submissions = db.query(Submission).filter(
         Submission.user_id == user_id, Submission.status == "passed"
     ).count()
-
-    total_solved = (
+    distinct_coding_solved = (
         db.query(Submission.problem_id)
         .filter(Submission.user_id == user_id, Submission.status == "passed")
         .distinct()
         .count()
     )
 
-    accuracy = (passed_submissions / total_submissions * 100) if total_submissions > 0 else 0.0
+    # MCQ attempts
+    total_mcq_attempts = db.query(McqAttempt).filter(McqAttempt.user_id == user_id).count()
+    correct_mcq_attempts = db.query(McqAttempt).filter(
+        McqAttempt.user_id == user_id, McqAttempt.is_correct.in_(["True", "true"])
+    ).count()
+    distinct_mcq_solved = (
+        db.query(McqAttempt.problem_id)
+        .filter(McqAttempt.user_id == user_id, McqAttempt.is_correct.in_(["True", "true"]))
+        .distinct()
+        .count()
+    )
 
+    # Combined totals (coding + MCQ count toward "problems solved" and accuracy)
+    total_attempts = total_coding_submissions + total_mcq_attempts
+    total_correct = passed_coding_submissions + correct_mcq_attempts
+    total_solved = distinct_coding_solved + distinct_mcq_solved
+
+    accuracy = (total_correct / total_attempts * 100) if total_attempts > 0 else 0.0
+
+    # Debugging challenges (tracked separately, not part of "solved" count)
     debugging_solved = db.query(DebuggingAttempt).filter(
         DebuggingAttempt.user_id == user_id, DebuggingAttempt.status == "solved"
     ).count()
-
     debugging_attempts = db.query(DebuggingAttempt).filter(DebuggingAttempt.user_id == user_id).all()
     avg_hints = (
         sum(a.hints_used for a in debugging_attempts) / len(debugging_attempts)
@@ -170,11 +173,13 @@ def recalculate_user_analytics(db: Session, user_id: int) -> UserAnalytics:
 
     analytics = db.query(UserAnalytics).filter(UserAnalytics.user_id == user_id).first()
     if not analytics:
-        analytics = UserAnalytics(user_id=user_id)
+        analytics = UserAnalytics(user_id=user_id, current_streak=0, longest_streak=0)
         db.add(analytics)
+        db.commit()
+        db.refresh(analytics)
 
     analytics.total_problems_solved = total_solved
-    analytics.total_submissions = total_submissions
+    analytics.total_submissions = total_attempts
     analytics.accuracy_percentage = round(accuracy, 1)
     analytics.debugging_challenges_solved = debugging_solved
     analytics.avg_hints_used = round(avg_hints, 1)
@@ -188,6 +193,8 @@ def recalculate_user_analytics(db: Session, user_id: int) -> UserAnalytics:
 
     db.commit()
     db.refresh(analytics)
+
+    from app.services.badge_service import check_and_award_badges
     check_and_award_badges(db, user_id)
 
     return analytics
