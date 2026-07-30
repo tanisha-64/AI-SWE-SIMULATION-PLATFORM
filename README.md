@@ -25,11 +25,13 @@ An AI-native platform that simulates a real software engineering environment —
 - **Autonomous Career Advisor Agent** — Multi-step reasoning agent: pulls analytics → finds weak areas → fetches recommendations → retrieves RAG context → synthesizes a personalized plan
 - **Self-Curating Career Tracks** — Salary-band prep roadmaps (4–8 / 8–15 / 15–30 / 30+ LPA) that regenerate via AI every 30 days and link to real problems already in the database
 - **Daily Challenges** — Auto-rotating Daily MCQ Quiz and Daily Debugging Arena, regenerated every day, never repeats solved items
-- **Industry Readiness Score** — Composite weighted score from accuracy, consistency, volume, code quality, and debugging skill
 - **Streaks, Badges & Calendar Heatmap** — GitHub-style contribution tracking with milestone-based rewards
 - **Real Email Verification** — JWT auth with short-lived access + long-lived refresh tokens, IP-based rate limiting on login, and Resend-powered verification emails
 - **Contact & Help Center** — Categorized support form with automated confirmation emails and an admin triage view
 - **Voice-Guided Onboarding** — A robotic "Jarvis"-style animated assistant that welcomes new users using the browser's native speech synthesis
+- **Freemium Pricing Model** — Free tier + Premium (AI Mentor unlimited access, Career Advisor Agent, Resume Builder)
+- **AI Resume Builder** — Auto-generates ATS-ready resume content from actual platform performance data, exports to PDF
+- **Success Stories** — Placement outcome tracking with admin-moderated public testimonials
 
 ---
 
@@ -125,7 +127,7 @@ AI company/
 │   │   ├── hooks/                     # useSpeech
 │   │   ├── pages/                     # Landing, Login, Register, VerifyEmail, Welcome,
 │   │   │                              # Dashboard, Problems, ProblemWorkspace, McqWorkspace,
-│   │   │                              # DebugArena, DebugChallenge, Analytics, Mentor,
+│   │   │                              # DebugArena, DebugChallenge, Mentor, Pricing, ResumeBuilder
 │   │   │                              # Profile, CareerTracks, CareerTrackDetail,
 │   │   │                              # DailyChallenge, Contact, NotFound
 │   │   ├── utils/                     # celebrate.ts (confetti)

@@ -36,7 +36,7 @@ frontend/
 │   ├── hooks/                       # useSpeech (text-to-speech wrapper)
 │   ├── pages/                       # Landing, Login, Register, VerifyEmail, Welcome,
 │   │                                 # Dashboard, Problems, ProblemWorkspace, McqWorkspace,
-│   │                                 # DebugArena, DebugChallenge, Analytics, Mentor,
+│   │                                 # DebugArena, DebugChallenge, Mentor, Pricing, ResumeBuilder
 │   │                                 # Profile, CareerTracks, CareerTrackDetail,
 │   │                                 # DailyChallenge, Contact, NotFound
 │   ├── utils/                       # celebrate.ts (confetti trigger)
