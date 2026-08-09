@@ -9,6 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
   const [error, setError] = useState('');
   const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
@@ -36,9 +37,28 @@ export default function Login() {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setError('');
+    setGuestLoading(true);
+    try {
+      await loginAsGuest();
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Guest login error:', err.response?.data);
+      if (err.response?.status === 429) {
+        setError('Too many guest sessions started recently. Please try again later or sign up.');
+      } else {
+        setError('Could not start guest session. Please try again.');
+      }
+    } finally {
+      setGuestLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-bg relative overflow-hidden">
       <JellyBlobs />
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -97,7 +117,7 @@ export default function Login() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              disabled={loading}
+              disabled={loading || guestLoading}
               className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
@@ -116,21 +136,12 @@ export default function Login() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={async () => {
-              setLoading(true);
-              try {
-                await loginAsGuest();
-                navigate('/dashboard');
-              } catch {
-                setError('Could not start guest session. Please try again.');
-              } finally {
-                setLoading(false);
-              }
-            }}
-            disabled={loading}
-            className="w-full border border-dark-border hover:border-primary/40 text-gray-300 font-medium py-2.5 rounded-lg transition-all disabled:opacity-60"
+            type="button"
+            onClick={handleGuestLogin}
+            disabled={loading || guestLoading}
+            className="w-full border border-dark-border hover:border-primary/40 text-gray-300 font-medium py-2.5 rounded-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            Continue as Guest
+            {guestLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Continue as Guest'}
           </motion.button>
 
           <p className="text-center text-gray-400 text-sm mt-6">
