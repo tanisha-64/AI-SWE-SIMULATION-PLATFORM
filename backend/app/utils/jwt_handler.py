@@ -50,3 +50,11 @@ def get_current_premium_user(current_user: User = Depends(get_current_user)) -> 
             detail="This feature requires a premium subscription"
         )
     return current_user
+
+def block_guest(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.is_guest:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This feature requires a full account. Please sign up to continue."
+        )
+    return current_user

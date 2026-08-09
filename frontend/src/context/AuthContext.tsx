@@ -17,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string) => Promise<void>;
+  loginAsGuest: () => Promise<void>;
   logout: () => void;
 }
 
@@ -55,6 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success('Welcome back! 👋');
   };
 
+  const loginAsGuest = async () => {
+    const response = await apiClient.post('/auth/guest');
+    localStorage.setItem('access_token', response.data.access_token);
+    localStorage.setItem('refresh_token', response.data.refresh_token);
+    await fetchCurrentUser();
+    toast.success('Exploring as Guest — sign up anytime to save your progress! 👋');
+  };
+
   const register = async (email: string, password: string, fullName: string) => {
     await apiClient.post('/auth/register', { email, password, full_name: fullName });
   };
@@ -66,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );

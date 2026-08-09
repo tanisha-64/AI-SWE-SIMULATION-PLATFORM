@@ -10,7 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,6 +103,35 @@ export default function Login() {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
             </motion.button>
           </form>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-dark-border" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-dark-card px-3 text-gray-500">or</span>
+            </div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={async () => {
+              setLoading(true);
+              try {
+                await loginAsGuest();
+                navigate('/dashboard');
+              } catch {
+                setError('Could not start guest session. Please try again.');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+            className="w-full border border-dark-border hover:border-primary/40 text-gray-300 font-medium py-2.5 rounded-lg transition-all disabled:opacity-60"
+          >
+            Continue as Guest
+          </motion.button>
 
           <p className="text-center text-gray-400 text-sm mt-6">
             Don't have an account?{' '}

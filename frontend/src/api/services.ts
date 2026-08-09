@@ -63,3 +63,7 @@ export const contactService = {
   submit: (data: { name: string; email: string; category: string; subject: string; message: string }) =>
     apiClient.post('/contact/', data),
 };
+
+export const guestService = {
+  loginAsGuest: () => apiClient.post('/auth/guest'),
+};

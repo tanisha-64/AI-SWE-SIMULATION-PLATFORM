@@ -1,4 +1,6 @@
 import secrets
+import secrets as secrets_module
+from app.core.security import hash_password
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from jose import JWTError
@@ -92,3 +94,29 @@ def refresh_access_token(refresh_token: str) -> str:
         return create_access_token(user_id)
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+
+def create_guest_session(db: Session) -> dict:
+    """
+    Creates a temporary, auto-verified guest account so anyone can explore
+    the platform instantly — no email, no password, no verification needed.
+    """
+    guest_id = secrets_module.token_hex(6)
+    guest_email = f"guest_{guest_id}@codementor.guest"
+    random_password = secrets_module.token_urlsafe(16)
+
+    guest_user = User(
+        email=guest_email,
+        password_hash=hash_password(random_password),
+        full_name=f"Guest User",
+        is_verified=True,   # guests skip email verification entirely
+        is_guest=True
+    )
+    db.add(guest_user)
+    db.commit()
+    db.refresh(guest_user)
+
+    access_token = create_access_token(guest_user.id)
+    refresh_token = create_refresh_token(guest_user.id)
+
+    return {"access_token": access_token, "refresh_token": refresh_token}

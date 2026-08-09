@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, BackgroundTasks  # type: ignore
 from sqlalchemy.orm import Session  # type: ignore[import]
 from app.db.session import get_db
+from app.services.auth_service import create_guest_session
+from app.utils.rate_limiter import rate_limit_by_ip
 from app.schemas.user import (
     UserRegister, UserLogin, Token, RegisterResponse,
     VerifyEmailRequest, MessageResponse, ResendVerificationRequest, RefreshRequest
@@ -49,3 +51,12 @@ def resend_verification(
     db: Session = Depends(get_db)
 ):
     return resend_verification_email(db, request.email, background_tasks)
+
+
+@router.post("/guest", response_model=Token)
+def guest_login(
+    db: Session = Depends(get_db),
+    _: bool = Depends(rate_limit_by_ip(max_requests=3, window_seconds=3600))
+):
+    """Instantly creates a guest account and logs in — no signup required."""
+    return create_guest_session(db)

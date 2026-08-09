@@ -54,7 +54,7 @@ export default function Landing() {
     apiClient
       .get('/success-stories/')
       .then((res) => setStories(res.data))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // 2. GSAP Animations
@@ -173,6 +173,14 @@ export default function Landing() {
             >
               Start Practicing Free
               <ArrowRight className="w-4 h-4" />
+            </motion.button>
+          </Link>
+          <Link to="/login">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              className="text-gray-400 hover:text-white px-6 py-3 text-sm transition-colors"
+            >
+              or explore as guest →
             </motion.button>
           </Link>
         </div>

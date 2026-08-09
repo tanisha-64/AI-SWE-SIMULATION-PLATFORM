@@ -13,3 +13,4 @@ class User(BaseModel):
     is_premium = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
     verification_token = Column(String, nullable=True)
+    is_guest = Column(Boolean, default=False)
