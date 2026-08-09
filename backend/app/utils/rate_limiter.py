@@ -25,9 +25,14 @@ def rate_limit(max_requests: int = 10, window_seconds: int = 60):
 
 
 def rate_limit_by_ip(max_requests: int = 5, window_seconds: int = 300):
-    """IP-based rate limiting for unauthenticated routes like login/register."""
+    """IP-based rate limiting — correctly reads the real client IP behind Render's proxy."""
     def dependency(request: Request):
-        client_ip = request.client.host if request.client else "unknown"
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            client_ip = forwarded.split(",")[0].strip()
+        else:
+            client_ip = request.client.host if request.client else "unknown"
+
         key = f"rate_limit_ip:{client_ip}:{max_requests}:{window_seconds}"
         try:
             current_count = redis_client.incr(key)

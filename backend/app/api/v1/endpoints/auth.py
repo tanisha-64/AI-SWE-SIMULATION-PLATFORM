@@ -56,7 +56,7 @@ def resend_verification(
 @router.post("/guest", response_model=Token)
 def guest_login(
     db: Session = Depends(get_db),
-    _: bool = Depends(rate_limit_by_ip(max_requests=3, window_seconds=3600))
+    _: bool = Depends(rate_limit_by_ip(max_requests=8, window_seconds=86400))
 ):
     """Instantly creates a guest account and logs in — no signup required."""
     return create_guest_session(db)

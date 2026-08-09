@@ -37,16 +37,32 @@ export default function Login() {
     }
   };
 
+  const GUEST_COUNT_KEY = 'guest_session_count';
+
   const handleGuestLogin = async () => {
     setError('');
+
+    const guestCount = parseInt(localStorage.getItem(GUEST_COUNT_KEY) || '0', 10);
+
+    if (guestCount >= 2) {
+      const proceed = window.confirm(
+        "You've explored as a guest a couple of times already! " +
+        "Sign up to save your progress permanently — or click OK to continue as guest anyway."
+      );
+      if (!proceed) return;
+    }
+
     setGuestLoading(true);
     try {
       await loginAsGuest();
+      localStorage.setItem(GUEST_COUNT_KEY, String(guestCount + 1));
       navigate('/dashboard');
     } catch (err: any) {
       console.error('Guest login error:', err.response?.data);
       if (err.response?.status === 429) {
-        setError('Too many guest sessions started recently. Please try again later or sign up.');
+        setError('Guest limit reached for now. Please sign up for unlimited access, or try again tomorrow.');
+      } else if (!err.response) {
+        setError('Could not connect to the server. Please check your connection and try again.');
       } else {
         setError('Could not start guest session. Please try again.');
       }
